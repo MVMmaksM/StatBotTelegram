@@ -1,0 +1,10 @@
+src/Presentation/StatBotTelegram/bin/
+src/Presentation/StatBotTelegram/obj/
+src/Presentation/StatBotTelegram/appsettings.json
+src/Core/Domain/bin
+src/Core/Domain/obj
+src/Core/Application/bin
+src/Core/Application/obj
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
