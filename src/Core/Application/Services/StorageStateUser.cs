@@ -71,6 +71,6 @@ public class StorageStateUser : IStateUser
 
     public bool ExistStateMenu(long chatId)
     {
-        throw new NotImplementedException();
+        return true;
     }
 }
