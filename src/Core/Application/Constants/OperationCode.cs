@@ -4,5 +4,8 @@ public enum OperationCode
 {
     SearchOkud,
     SearchFio,
-    SearchPhone
+    SearchPhone,
+    SearchOkpo,
+    SearchInn,
+    SearchOgrnOgrnip
 }

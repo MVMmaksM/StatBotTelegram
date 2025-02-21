@@ -16,6 +16,13 @@ public static class ServiceCollectionsExtension
         builder.Services.AddTransient<StartMenuHandleController>();
         builder.Services.AddTransient<SearchEmployeesHandleController>();
         builder.Services.AddTransient<InfoCodesAndListFormsHandleController>();
+        builder.Services.AddTransient<InfoOrganizationHandleController>();
+   
+        builder.Services.AddHttpClient<IInfoOrganizationService, InfoOrganizationService>(clientConfigure =>
+        {
+            clientConfigure.BaseAddress = new Uri(builder.Configuration.GetSection("BaseAddressWebsbor")?.Value);
+        });
+       
 
         builder.Services.AddSingleton<IStateUser, StorageStateUser>();
         

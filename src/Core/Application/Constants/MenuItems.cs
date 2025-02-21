@@ -4,5 +4,7 @@ public enum MenuItems
 {
     MainMenu,
     SearchEmployees,
-    GetInfoCodesAndListForm
+    GetInfoCodesAndListForm,
+    GetInfoOrganization,
+    GetListForm
 }

@@ -62,7 +62,7 @@ public static class KeyboradButtonMenu
         }
     };
     
-    private static KeyboardButton[][] _buttonsGetInfoOrganization = new KeyboardButton[][]
+    private static KeyboardButton[][] _buttonsSearchOkpoInnOgrn = new KeyboardButton[][]
     {
         //первая строка кнопок
         new KeyboardButton[]
@@ -84,5 +84,5 @@ public static class KeyboradButtonMenu
     public static KeyboardButton[][] ButtonsMainMenu => _buttonsMainMenu;
     public static KeyboardButton[][] ButtonsSearchEmployeesMenu => _buttonsSearchEmployeesMenu;
     public static KeyboardButton[][] ButtonsInfoCodesAndListForm => _buttonsInfoCodesAndListForm;
-    public static KeyboardButton[][] ButtonsGetInfoOrganization => _buttonsGetInfoOrganization;
+    public static KeyboardButton[][] ButtonsSearchOkpoInnOgrn => _buttonsSearchOkpoInnOgrn;
 }

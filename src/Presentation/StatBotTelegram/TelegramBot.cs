@@ -13,6 +13,7 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
     StartMenuHandleController startMenuHandleController,
     SearchEmployeesHandleController searchEmployeesHandleController,
     InfoCodesAndListFormsHandleController infoCodesAndListFormsHandleController,
+    InfoOrganizationHandleController infoOrganizationHandleController,
     IStateUser stateUser) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -29,7 +30,7 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
         if (update.Type == UpdateType.Message)
         {
             var state = stateUser.GetState(update.Message.Chat.Id);
-            if (state is null || state.MenuItem == MenuItems.MainMenu)
+            if (state is null || state.MenuItem == MenuItems.MainMenu || update.Message.Text == "/start")
             {
                 await startMenuHandleController.Handle(update.Message, cancellationToken);
                 return; 
@@ -44,6 +45,13 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
                 //если в меню получения кодов статистики и перечня форм
                 case MenuItems.GetInfoCodesAndListForm:
                     await infoCodesAndListFormsHandleController.Handle(update.Message, cancellationToken);
+                    break;
+                //получение данных организации
+                case MenuItems.GetInfoOrganization:
+                    await infoOrganizationHandleController.Handle(update.Message, cancellationToken);
+                    break;
+                //получение перечня форм
+                case MenuItems.GetListForm:
                     break;
             }
         }

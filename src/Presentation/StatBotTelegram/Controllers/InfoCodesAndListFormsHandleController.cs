@@ -11,29 +11,6 @@ public class InfoCodesAndListFormsHandleController(ITelegramBotClient botClient,
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
-        var state = stateUser.GetState(message.Chat.Id);
-        if (state.OperationItem is not null && message.Text != "Назад")
-        {
-            await HandleOperation(message, cancellationToken);
-        }
-        else
-        {
-            await HandleButton(message, cancellationToken); 
-        }
-    }
-
-    private async Task HandleOperation(Message message, CancellationToken cancellationToken)
-    {
-        
-    }
-
-    /// <summary>
-    /// обработка нажатия на кнопки
-    /// </summary>
-    /// <param name="message"></param>
-    /// <param name="cancellationToken"></param>
-    private async Task HandleButton(Message message, CancellationToken cancellationToken)
-    {
         switch (message.Text)
         {
             case "Получить данные о кодах статистики организации":
@@ -42,7 +19,9 @@ public class InfoCodesAndListFormsHandleController(ITelegramBotClient botClient,
                     protectContent: true, replyParameters: message.Id,
                     text: $"{ConstTextMessage.SelectCommand}",
                     parseMode: ParseMode.Html, cancellationToken: cancellationToken,
-                    replyMarkup: KeyboradButtonMenu.ButtonsGetInfoOrganization);
+                    replyMarkup: KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn);
+                //устанавливаем сосотояние
+                stateUser.SetStateMenu(message.Chat.Id, MenuItems.GetInfoOrganization);
                 break;
             case "Получить перечень форм":
                 //ответ
@@ -50,7 +29,9 @@ public class InfoCodesAndListFormsHandleController(ITelegramBotClient botClient,
                     protectContent: true, replyParameters: message.Id,
                     text: $"{ConstTextMessage.SelectCommand}",
                     parseMode: ParseMode.Html, cancellationToken: cancellationToken,
-                    replyMarkup: KeyboradButtonMenu.ButtonsGetInfoOrganization);
+                    replyMarkup: KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn);
+                //устанавливаем сосотояние
+                stateUser.SetStateMenu(message.Chat.Id, MenuItems.GetListForm);
                 break;
             case "Назад":
                 //ответ
@@ -58,7 +39,19 @@ public class InfoCodesAndListFormsHandleController(ITelegramBotClient botClient,
                     protectContent: true, replyParameters: message.Id,
                     text: $"{ConstTextMessage.SelectCommand}",
                     parseMode: ParseMode.Html, cancellationToken: cancellationToken,
+                    replyMarkup: KeyboradButtonMenu.ButtonsMainMenu);
+                //устанавливаем сосотояние
+                stateUser.SetStateMenu(message.Chat.Id, MenuItems.MainMenu);
+                break;
+            default:
+                //ответ
+                await botClient.SendMessage(chatId: message.Chat.Id, 
+                    protectContent: true, replyParameters: message.Id,
+                    text: $"{ConstTextMessage.UnknownCommand}",
+                    parseMode: ParseMode.Html, cancellationToken: cancellationToken,
                     replyMarkup: KeyboradButtonMenu.ButtonsInfoCodesAndListForm);
+                //сбрасываем состояние команды
+                stateUser.RemoveOperationCode(message.Chat.Id);
                 break;
         }
     }
