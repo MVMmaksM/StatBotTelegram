@@ -104,7 +104,6 @@ public class InfoOrganizationHandleController(
                 validationResult = await validatorRequestInfoOrganization.ValidateAsync(filter);
                 break;
             case OperationCode.SearchInn:
-                //TODO валидация введенного ИНН
                 //составляем фильтр
                 filter.Okpo = string.Empty;
                 filter.Inn = message.Text.Trim();
@@ -113,7 +112,6 @@ public class InfoOrganizationHandleController(
                 validationResult = await validatorRequestInfoOrganization.ValidateAsync(filter);
                 break;
             case OperationCode.SearchOgrnOgrnip:
-                //TODO валидация введенного ОГРН
                 //составляем фильтр
                 filter.Okpo = string.Empty;
                 filter.Inn = string.Empty;
