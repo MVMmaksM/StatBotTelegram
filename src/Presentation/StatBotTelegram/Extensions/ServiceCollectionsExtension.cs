@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Application.Services;
+using FluentValidation;
 using StatBotTelegram.Components;
 using StatBotTelegram.Controllers;
 using Telegram.Bot;
@@ -17,16 +18,19 @@ public static class ServiceCollectionsExtension
         builder.Services.AddTransient<SearchEmployeesHandleController>();
         builder.Services.AddTransient<InfoCodesAndListFormsHandleController>();
         builder.Services.AddTransient<InfoOrganizationHandleController>();
+        builder.Services.AddTransient<IInfoOrganizationService, InfoOrganizationService>();
    
-        builder.Services.AddHttpClient<IInfoOrganizationService, InfoOrganizationService>(clientConfigure =>
+        builder.Services.AddSingleton<IStateUser, StorageStateUser>();
+        
+        builder.Services.AddHttpClient<IRequesterApi, RequesterApi>(clientConfigure =>
         {
             clientConfigure.BaseAddress = new Uri(builder.Configuration.GetSection("BaseAddressWebsbor")?.Value);
         });
-       
 
-        builder.Services.AddSingleton<IStateUser, StorageStateUser>();
+        builder.Services.AddValidatorsFromAssemblyContaining<ValidatorRequestInfoOrganization>();
         
         builder.Services.AddHostedService<TelegramBot>();
+        
         return builder;
     }
 }

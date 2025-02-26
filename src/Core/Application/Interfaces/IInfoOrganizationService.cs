@@ -4,5 +4,5 @@ namespace Application.Interfaces;
 
 public interface IInfoOrganizationService
 {
-    Task<string> GetInfoOrganization(FilterOrganization filter, CancellationToken cancellationToken);
+    Task<string> GetInfoOrganization(RequestInfoOrganization requestInfo, CancellationToken cancellationToken);
 }
