@@ -1,4 +1,3 @@
-using Application.Errors;
 using Application.Interfaces;
 using Application.Models;
 using FluentValidation;
