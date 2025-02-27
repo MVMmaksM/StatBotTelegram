@@ -6,14 +6,15 @@ public static class ListFormExtensions
 {
     public static string ToDto(this List<Form> forms)
     {
-        if(forms.Count == 0)
+        if (forms.Count == 0)
             return "Формы не найдены!";
 
-        var dto = forms.Select(f => 
-            "<b>Перечень форм:</b>\n\n" +
+        var result = "<b>Перечень форм:</b>\n\n";
+
+        var dto = forms.Select(f =>
             $"Форма: {f.Index}\n" +
             $"Название: {f.Name}\n");
-        
-        return string.Join("\n", dto);
+
+        return string.Concat(result, string.Join("\n", dto));
     }
 }
