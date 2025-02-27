@@ -10,9 +10,9 @@ using Telegram.Bot.Types.Enums;
 namespace StatBotTelegram;
 
 public class TelegramBot(ITelegramBotClient telegramBotClient, 
-    StartMenuController startMenuController,
+    MainMenuController mainMenuController,
     SearchEmployeesController searchEmployeesController,
-    InfoCodesAndListFormsController infoCodesAndListFormsController,
+    InfoMainMenuController infoMainMenuController,
     InfoOrganizationController infoOrganizationController,
     ListFormController listFormController,
     IStateUser stateUser) : BackgroundService
@@ -33,7 +33,7 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
             var state = stateUser.GetState(update.Message.Chat.Id);
             if (state is null || state.MenuItem == MenuItems.MainMenu || update.Message.Text == "/start")
             {
-                await startMenuController.Handle(update.Message, cancellationToken);
+                await mainMenuController.Handle(update.Message, cancellationToken);
                 return; 
             }
                 
@@ -45,7 +45,7 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
                     break;
                 //если в меню получения кодов статистики и перечня форм
                 case MenuItems.GetInfoCodesAndListForm:
-                    await infoCodesAndListFormsController.Handle(update.Message, cancellationToken);
+                    await infoMainMenuController.Handle(update.Message, cancellationToken);
                     break;
                 //получение данных организации
                 case MenuItems.GetInfoOrganization:

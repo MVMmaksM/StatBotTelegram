@@ -15,9 +15,9 @@ public static class ServiceCollectionsExtension
         builder.Services.AddSingleton<ITelegramBotClient>
             (provider => new TelegramBotClient(builder.Configuration.GetSection("ApiTokenBot")?.Value));
    
-        builder.Services.AddTransient<StartMenuController>();
+        builder.Services.AddTransient<MainMenuController>();
         builder.Services.AddTransient<SearchEmployeesController>();
-        builder.Services.AddTransient<InfoCodesAndListFormsController>();
+        builder.Services.AddTransient<InfoMainMenuController>();
         builder.Services.AddTransient<InfoOrganizationController>();
         builder.Services.AddTransient<ListFormController>();
         builder.Services.AddTransient<IInfoOrganizationService, InfoOrganizationService>();
