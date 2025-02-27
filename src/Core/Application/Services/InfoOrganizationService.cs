@@ -9,10 +9,10 @@ namespace Application.Services;
 
 public class InfoOrganizationService(IRequesterApi requesterApi) : IInfoOrganizationService
 {
-    public async Task<string> GetInfoOrganization(RequestInfoOrganization requestInfo, CancellationToken ct)
+    public async Task<string> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken ct)
     {
         string result = String.Empty;
-        var responce = await requesterApi.PostAsync<RequestInfoOrganization>("/webstat/api/gs/organizations", requestInfo, ct);
+        var responce = await requesterApi.PostAsync<RequestInfoForm>("/webstat/api/gs/organizations", requestInfo, ct);
         
         if (responce.IsSuccessStatusCode)
         {

@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Models;
 using Application.Services;
 using FluentValidation;
 using StatBotTelegram.Components;
@@ -14,11 +15,13 @@ public static class ServiceCollectionsExtension
         builder.Services.AddSingleton<ITelegramBotClient>
             (provider => new TelegramBotClient(builder.Configuration.GetSection("ApiTokenBot")?.Value));
    
-        builder.Services.AddTransient<StartMenuHandleController>();
-        builder.Services.AddTransient<SearchEmployeesHandleController>();
-        builder.Services.AddTransient<InfoCodesAndListFormsHandleController>();
-        builder.Services.AddTransient<InfoOrganizationHandleController>();
+        builder.Services.AddTransient<StartMenuController>();
+        builder.Services.AddTransient<SearchEmployeesController>();
+        builder.Services.AddTransient<InfoCodesAndListFormsController>();
+        builder.Services.AddTransient<InfoOrganizationController>();
+        builder.Services.AddTransient<ListFormController>();
         builder.Services.AddTransient<IInfoOrganizationService, InfoOrganizationService>();
+        builder.Services.AddTransient<IListForm, ListFormService>();
    
         builder.Services.AddSingleton<IStateUser, StorageStateUser>();
         
@@ -27,7 +30,7 @@ public static class ServiceCollectionsExtension
             clientConfigure.BaseAddress = new Uri(builder.Configuration.GetSection("BaseAddressWebsbor")?.Value);
         });
 
-        builder.Services.AddValidatorsFromAssemblyContaining<ValidatorRequestInfoOrganization>();
+        builder.Services.AddValidatorsFromAssemblyContaining<RequestInfoForm>(ServiceLifetime.Transient);
         
         builder.Services.AddHostedService<TelegramBot>();
         

@@ -7,7 +7,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace StatBotTelegram.Controllers;
 
-public class StartMenuHandleController(ITelegramBotClient botClient, IStateUser stateUser)
+public class StartMenuController(ITelegramBotClient botClient, IStateUser stateUser)
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {

@@ -7,7 +7,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace StatBotTelegram.Controllers;
 
-public class SearchEmployeesHandleController(ITelegramBotClient botClient, IStateUser stateUser)
+public class SearchEmployeesController(ITelegramBotClient botClient, IStateUser stateUser)
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {

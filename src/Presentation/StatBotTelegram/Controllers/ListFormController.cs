@@ -2,22 +2,21 @@ using Application.Constants;
 using Application.Extensions;
 using Application.Interfaces;
 using Application.Models;
-using Application.Services;
 using FluentValidation;
+using FluentValidation.Results;
 using StatBotTelegram.Components;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using FluentValidation.Results;
 
 namespace StatBotTelegram.Controllers;
 
-public class InfoOrganizationHandleController(
-    ITelegramBotClient botClient,
-    IStateUser stateUser,
-    IInfoOrganizationService infoOrganizationService,
-    IValidator<RequestInfoOrganization> validatorRequestInfoOrganization)
+public class ListFormController(
+    ITelegramBotClient botClient, 
+    IStateUser stateUser, 
+    IValidator<RequestInfoForm> validatorRequestInfoForm,
+    IListForm listFormService)
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
@@ -33,7 +32,7 @@ public class InfoOrganizationHandleController(
             await HandleButton(message, cancellationToken);
         }
     }
-
+    
     private async Task HandleButton(Message message, CancellationToken cancellationToken)
     {
         var textMessage = string.Empty;
@@ -85,11 +84,11 @@ public class InfoOrganizationHandleController(
             parseMode: ParseMode.Html, cancellationToken: cancellationToken,
             replyMarkup: buttonMenu);
     }
-
+    
     private async Task HandleOperation(Message message, CancellationToken cancellationToken)
     {
         var operationState = stateUser.GetState(message.Chat.Id).OperationItem;
-        var filter = new RequestInfoOrganization();
+        var filter = new RequestInfoForm();
         ValidationResult validationResult = null;
         //в зависимости от выбранной операции 
         //составляем фильтр
@@ -101,7 +100,7 @@ public class InfoOrganizationHandleController(
                 filter.Inn = string.Empty;
                 filter.OgrnOgrnip = string.Empty;
                 //валидация
-                validationResult = await validatorRequestInfoOrganization.ValidateAsync(filter);
+                validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
                 break;
             case OperationCode.SearchInn:
                 //составляем фильтр
@@ -109,7 +108,7 @@ public class InfoOrganizationHandleController(
                 filter.Inn = message.Text.Trim();
                 filter.OgrnOgrnip = string.Empty;
                 //валидация
-                validationResult = await validatorRequestInfoOrganization.ValidateAsync(filter);
+                validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
                 break;
             case OperationCode.SearchOgrnOgrnip:
                 //составляем фильтр
@@ -117,13 +116,13 @@ public class InfoOrganizationHandleController(
                 filter.Inn = string.Empty;
                 filter.OgrnOgrnip = message.Text.Trim();
                 //валидация
-                validationResult = await validatorRequestInfoOrganization.ValidateAsync(filter);
+                validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
                 break;
         }
         
         var result = !validationResult.IsValid ? 
             validationResult.Errors.ToDto() : 
-            await infoOrganizationService.GetInfoOrganization(filter, cancellationToken);
+            await listFormService.GetListForm(filter, cancellationToken);
         
         //ответ
         await botClient.SendMessage(chatId: message.Chat.Id,

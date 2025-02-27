@@ -5,7 +5,7 @@ using FluentValidation;
 
 namespace Application.Services;
 
-public class ValidatorRequestInfoOrganization : AbstractValidator<RequestInfoOrganization>
+public class ValidatorRequestInfoOrganization : AbstractValidator<RequestInfoForm>
 {
     public ValidatorRequestInfoOrganization()
     {

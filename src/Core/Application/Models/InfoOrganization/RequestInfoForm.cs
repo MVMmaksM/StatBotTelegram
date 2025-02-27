@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace Application.Models;
 
-public class RequestInfoOrganization
+public class RequestInfoForm
 {
     [JsonProperty(PropertyName = "okpo")]
     public string? Okpo { get; set; }

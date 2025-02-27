@@ -10,10 +10,11 @@ using Telegram.Bot.Types.Enums;
 namespace StatBotTelegram;
 
 public class TelegramBot(ITelegramBotClient telegramBotClient, 
-    StartMenuHandleController startMenuHandleController,
-    SearchEmployeesHandleController searchEmployeesHandleController,
-    InfoCodesAndListFormsHandleController infoCodesAndListFormsHandleController,
-    InfoOrganizationHandleController infoOrganizationHandleController,
+    StartMenuController startMenuController,
+    SearchEmployeesController searchEmployeesController,
+    InfoCodesAndListFormsController infoCodesAndListFormsController,
+    InfoOrganizationController infoOrganizationController,
+    ListFormController listFormController,
     IStateUser stateUser) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -32,7 +33,7 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
             var state = stateUser.GetState(update.Message.Chat.Id);
             if (state is null || state.MenuItem == MenuItems.MainMenu || update.Message.Text == "/start")
             {
-                await startMenuHandleController.Handle(update.Message, cancellationToken);
+                await startMenuController.Handle(update.Message, cancellationToken);
                 return; 
             }
                 
@@ -40,18 +41,19 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
             {
                 //если в меню поиска сотрудников
                 case MenuItems.SearchEmployees:
-                    await searchEmployeesHandleController.Handle(update.Message, cancellationToken);
+                    await searchEmployeesController.Handle(update.Message, cancellationToken);
                     break;
                 //если в меню получения кодов статистики и перечня форм
                 case MenuItems.GetInfoCodesAndListForm:
-                    await infoCodesAndListFormsHandleController.Handle(update.Message, cancellationToken);
+                    await infoCodesAndListFormsController.Handle(update.Message, cancellationToken);
                     break;
                 //получение данных организации
                 case MenuItems.GetInfoOrganization:
-                    await infoOrganizationHandleController.Handle(update.Message, cancellationToken);
+                    await infoOrganizationController.Handle(update.Message, cancellationToken);
                     break;
                 //получение перечня форм
                 case MenuItems.GetListForm:
+                    await listFormController.Handle(update.Message, cancellationToken);
                     break;
             }
         }
