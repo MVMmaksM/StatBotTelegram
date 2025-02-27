@@ -12,5 +12,5 @@ public class RequestInfoForm
     public string? Inn { get; set; }
     
     [JsonProperty(PropertyName = "ogrn")]
-    public string? OgrnOgrnip { get; set; }
+    public string? Ogrn { get; set; }
 }

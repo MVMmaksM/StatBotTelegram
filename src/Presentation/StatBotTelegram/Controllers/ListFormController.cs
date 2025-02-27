@@ -98,7 +98,7 @@ public class ListFormController(
                 //составляем фильтр
                 filter.Okpo = message.Text.Trim();
                 filter.Inn = string.Empty;
-                filter.OgrnOgrnip = string.Empty;
+                filter.Ogrn = string.Empty;
                 //валидация
                 validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
                 break;
@@ -106,7 +106,7 @@ public class ListFormController(
                 //составляем фильтр
                 filter.Okpo = string.Empty;
                 filter.Inn = message.Text.Trim();
-                filter.OgrnOgrnip = string.Empty;
+                filter.Ogrn = string.Empty;
                 //валидация
                 validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
                 break;
@@ -114,7 +114,7 @@ public class ListFormController(
                 //составляем фильтр
                 filter.Okpo = string.Empty;
                 filter.Inn = string.Empty;
-                filter.OgrnOgrnip = message.Text.Trim();
+                filter.Ogrn = message.Text.Trim();
                 //валидация
                 validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
                 break;
