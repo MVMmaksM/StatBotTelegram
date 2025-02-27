@@ -33,7 +33,7 @@ public class MainMenuController(ITelegramBotClient botClient, IStateUser stateUs
                 break;
             case "Получение данных о кодах статистики и перечня форм":
                 //устанавливаем состояние
-                stateUser.SetStateMenu(message.Chat.Id, MenuItems.GetInfoCodesAndListForm);
+                stateUser.SetStateMenu(message.Chat.Id, MenuItems.InfoMainMenu);
                 textMessage = ConstTextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsInfoCodesAndListForm;
                 break;

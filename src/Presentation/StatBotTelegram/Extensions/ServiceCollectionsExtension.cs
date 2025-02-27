@@ -20,6 +20,7 @@ public static class ServiceCollectionsExtension
         builder.Services.AddTransient<InfoMainMenuController>();
         builder.Services.AddTransient<InfoOrganizationController>();
         builder.Services.AddTransient<ListFormController>();
+        
         builder.Services.AddTransient<IInfoOrganizationService, InfoOrganizationService>();
         builder.Services.AddTransient<IListForm, ListFormService>();
    
@@ -31,7 +32,6 @@ public static class ServiceCollectionsExtension
         });
 
         builder.Services.AddValidatorsFromAssemblyContaining<RequestInfoForm>(ServiceLifetime.Transient);
-        
         builder.Services.AddHostedService<TelegramBot>();
         
         return builder;

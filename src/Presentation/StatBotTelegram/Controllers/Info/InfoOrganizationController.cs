@@ -65,7 +65,7 @@ public class InfoOrganizationController(
                 textMessage = ConstTextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsInfoCodesAndListForm;
                 //меняем состояние меню
-                stateUser.SetStateMenu(message.Chat.Id, MenuItems.GetInfoCodesAndListForm);
+                stateUser.SetStateMenu(message.Chat.Id, MenuItems.InfoMainMenu);
                 //скидываем состояние выбранной операции
                 stateUser.RemoveOperationCode(message.Chat.Id);
                 break;

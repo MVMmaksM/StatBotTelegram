@@ -44,7 +44,7 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
                     await searchEmployeesController.Handle(update.Message, cancellationToken);
                     break;
                 //если в меню получения кодов статистики и перечня форм
-                case MenuItems.GetInfoCodesAndListForm:
+                case MenuItems.InfoMainMenu:
                     await infoMainMenuController.Handle(update.Message, cancellationToken);
                     break;
                 //получение данных организации
