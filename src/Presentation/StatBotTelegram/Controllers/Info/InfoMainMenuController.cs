@@ -17,26 +17,29 @@ public class InfoMainMenuController(ITelegramBotClient botClient, IStateUser sta
         
         switch (message.Text)
         {
-            case "Получить данные о кодах статистики организации":
-                textMessage = ConstTextMessage.SelectCommand;
+            //Получить данные о кодах статистики организации
+            case NameButton.GetInfoOrganization:
+                textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем сосотояние
                 stateUser.SetStateMenu(message.Chat.Id, MenuItems.GetInfoOrganization);
                 break;
-            case "Получить перечень форм":
-                textMessage = ConstTextMessage.SelectCommand;
+            //Получить перечень форм
+            case NameButton.GetListForms:
+                textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем сосотояние
                 stateUser.SetStateMenu(message.Chat.Id, MenuItems.GetListForm);
                 break;
-            case "Назад":
-                textMessage = ConstTextMessage.SelectCommand;
+            //Назад
+            case NameButton.Back:
+                textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 //устанавливаем сосотояние
                 stateUser.SetStateMenu(message.Chat.Id, MenuItems.MainMenu);
                 break;
             default:
-                textMessage = ConstTextMessage.UnknownCommand;
+                textMessage = TextMessage.UnknownCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsInfoCodesAndListForm;
                 //сбрасываем состояние команды
                 stateUser.RemoveOperationCode(message.Chat.Id);

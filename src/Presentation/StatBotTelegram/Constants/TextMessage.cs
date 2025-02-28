@@ -1,6 +1,6 @@
 namespace Application.Constants;
 
-public static class ConstTextMessage
+public static class TextMessage
 {
     private static string _welcomeText = "Вас приветствует Telegram бот технической поддержки Свердловскстата (г. Курган)!" +
                                   "\n\nДля взаимодействия с чат-ботом используйте кнопки.";
@@ -11,6 +11,8 @@ public static class ConstTextMessage
     private static string _searchOkpo = "Введите ОКПО:";
     private static string _searchInn = "Введите ИНН:";
     private static string _searchOgrnOgrnip = "Введите ОГРН/ОГРНИП:";
+    private static string _searchFioEmployee = "Введите фамилию специалиста:";
+    private static string _searchPhoneEmployee = "Введите номер телефона специалиста:";
     
     public static string WelcomeText => _welcomeText; 
     public static string UnknownCommand => _unknownCommand; 
@@ -20,4 +22,6 @@ public static class ConstTextMessage
     public static string SearchOkpo => _searchOkpo; 
     public static string SearchInn => _searchInn; 
     public static string SearchOgrnOgrnip => _searchOgrnOgrnip; 
+    public static string SearchFioEmployee => _searchFioEmployee; 
+    public static string SearchPhoneEmployee => _searchPhoneEmployee; 
 }

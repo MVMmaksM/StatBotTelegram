@@ -14,31 +14,34 @@ public class MainMenuController(ITelegramBotClient botClient, IStateUser stateUs
     {
         var textMessage = string.Empty;
         KeyboardButton[][] buttonMenu = null;
-        
+
         //в зависимости от выбранной команды
         //устанавливаем сообщение, кнопки и состояние
         switch (message.Text)
         {
-            case "/start":
+            //start
+            case NameButton.Start:
                 //устанавливаем состояние
                 stateUser.SetStateMenu(message.Chat.Id, MenuItems.MainMenu);
-                textMessage = $"Добро пожаловать, {message.From.FirstName}!\n\n{ConstTextMessage.WelcomeText}";
+                textMessage = $"Добро пожаловать, {message.From.FirstName}!\n\n{TextMessage.WelcomeText}";
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 break;
-            case "Поиск специалиста, ответственного за форму":
+            //Поиск специалиста, ответственного за форму
+            case NameButton.SearchEmployees:
                 //устанавливаем состояние
                 stateUser.SetStateMenu(message.Chat.Id, MenuItems.SearchEmployees);
-                textMessage = ConstTextMessage.SearchEmployees;
+                textMessage = TextMessage.SearchEmployees;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
-                break;
-            case "Получение данных о кодах статистики и перечня форм":
+                break; 
+            //Получение данных о кодах статистики и перечня форм
+            case NameButton.GetInfoCodesAndListForms:
                 //устанавливаем состояние
                 stateUser.SetStateMenu(message.Chat.Id, MenuItems.InfoMainMenu);
-                textMessage = ConstTextMessage.SelectCommand;
+                textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsInfoCodesAndListForm;
                 break;
             default:
-                textMessage = ConstTextMessage.UnknownCommand;
+                textMessage = TextMessage.UnknownCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 break;
         }

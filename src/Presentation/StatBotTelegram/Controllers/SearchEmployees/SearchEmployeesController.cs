@@ -13,7 +13,9 @@ public class SearchEmployeesController(ITelegramBotClient botClient, IStateUser 
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
         var state = stateUser.GetState(message.Chat.Id);
-        if (state.OperationItem is not null && message.Text != "Назад")
+        if (state.OperationItem is not null && 
+            (message.Text != NameButton.Back && message.Text != NameButton.ByOkud && message.Text != NameButton.ByFio && 
+             message.Text != NameButton.ByPhoneEmployee))
         {
             await HandleOperation(message, cancellationToken);
         }
@@ -45,14 +47,30 @@ public class SearchEmployeesController(ITelegramBotClient botClient, IStateUser 
         
         switch (message.Text)
         {
-            case "По ОКУД формы":
-                textMessage = ConstTextMessage.SearchOkud;
+            //По ОКУД формы
+            case NameButton.ByOkud:
+                textMessage = TextMessage.SearchOkud;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 //устанавливаем состояние выбранной команды
                 stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchOkud);
                 break;
-            case "Назад":
-                textMessage = ConstTextMessage.SelectCommand;
+            //По фамилии специалиста
+            case NameButton.ByFio:
+                textMessage = TextMessage.SearchFioEmployee;
+                buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
+                //устанавливаем состояние выбранной команды
+                stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchFio);
+                break;
+            //По номеру телефона специалиста
+            case NameButton.ByPhoneEmployee:
+                textMessage = TextMessage.SearchPhoneEmployee;
+                buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
+                //устанавливаем состояние выбранной команды
+                stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchPhone);
+                break;
+            //Назад
+            case NameButton.Back:
+                textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 //меняем состояние меню
                 stateUser.SetStateMenu(message.Chat.Id, MenuItems.MainMenu);
@@ -60,7 +78,7 @@ public class SearchEmployeesController(ITelegramBotClient botClient, IStateUser 
                 stateUser.RemoveOperationCode(message.Chat.Id);
                 break;
             default:
-                textMessage = ConstTextMessage.UnknownCommand;
+                textMessage = TextMessage.UnknownCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 break;
         }

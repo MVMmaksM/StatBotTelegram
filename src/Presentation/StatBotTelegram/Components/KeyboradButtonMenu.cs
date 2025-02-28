@@ -1,3 +1,4 @@
+using Application.Constants;
 using Telegram.Bot.Types.ReplyMarkups;
 namespace StatBotTelegram.Components;
 
@@ -11,13 +12,16 @@ public static class KeyboradButtonMenu
         //первая строка кнопок
         new KeyboardButton[]
         {
-            new KeyboardButton("Статотчетность в электронном виде")
+            //Статотчетность в электронном виде
+            new KeyboardButton(NameButton.StatReportInElectron)
         },
         //вторая строка кнопок
         new KeyboardButton[]
         {
-            new KeyboardButton("Получение данных о кодах статистики и перечня форм"),
-            new KeyboardButton("Поиск специалиста, ответственного за форму")
+            //Получение данных о кодах статистики и перечня форм
+            new KeyboardButton(NameButton.GetInfoCodesAndListForms),
+            //Поиск специалиста, ответственного за форму
+            new KeyboardButton(NameButton.SearchEmployees)
         }
     };
     
@@ -29,18 +33,22 @@ public static class KeyboradButtonMenu
         //первая строка кнопок
         new KeyboardButton[]
         {
-            new KeyboardButton("По ОКУД формы"),
-            new KeyboardButton("По ФИО")
+            //По ОКУД формы
+            new KeyboardButton(NameButton.ByOkud),
+            //По ФИО
+            new KeyboardButton(NameButton.ByFio)
         },
         //вторая строка кнопок
         new KeyboardButton[]
         {
-            new KeyboardButton("По номеру телефона специалиста")
+            //По номеру телефона специалиста
+            new KeyboardButton(NameButton.ByPhoneEmployee)
         },
         //третья строка кнопок
         new KeyboardButton[]
         {
-            new KeyboardButton("Назад")
+            //Назад
+            new KeyboardButton(NameButton.Back)
         }
     };
     
@@ -52,13 +60,16 @@ public static class KeyboradButtonMenu
         //первая строка кнопок
         new KeyboardButton[]
         {
-            new KeyboardButton("Получить данные о кодах статистики организации"),
-            new KeyboardButton("Получить перечень форм")
+            //Получить данные о кодах статистики организации
+            new KeyboardButton(NameButton.GetInfoOrganization),
+            //Получить перечень форм
+            new KeyboardButton(NameButton.GetListForms)
         },
         //вторая строка кнопок
         new KeyboardButton[]
         {
-            new KeyboardButton("Назад")
+            //Назад
+            new KeyboardButton(NameButton.Back)
         }
     };
     
@@ -67,17 +78,21 @@ public static class KeyboradButtonMenu
         //первая строка кнопок
         new KeyboardButton[]
         {
-            new KeyboardButton("По ОКПО"),
-            new KeyboardButton("По ИНН")
+            //По ОКПО
+            new KeyboardButton(NameButton.ByOkpo),
+            //По ИНН
+            new KeyboardButton(NameButton.ByInn)
         },
         //вторая строка кнопок
         new KeyboardButton[]
         {
-            new KeyboardButton("По ОГРН/ОГРНИП")
+            //По ОГРН/ОГРНИП
+            new KeyboardButton(NameButton.ByOgrn)
         },
         new KeyboardButton[]
         {
-            new KeyboardButton("Назад")
+            //Назад
+            new KeyboardButton(NameButton.Back)
         }
     };
 

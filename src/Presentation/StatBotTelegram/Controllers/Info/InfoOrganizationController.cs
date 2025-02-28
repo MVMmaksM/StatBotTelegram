@@ -23,8 +23,8 @@ public class InfoOrganizationController(
     {
         var state = stateUser.GetState(message.Chat.Id);
         if (state.OperationItem is not null &&
-            (message.Text != "Назад" && message.Text != "По ОКПО" && message.Text != "По ИНН" &&
-             message.Text != "По ОГРН/ОГРНИП"))
+            (message.Text != NameButton.Back && message.Text != NameButton.ByOkpo && message.Text != NameButton.ByInn &&
+             message.Text != NameButton.ByOgrn))
         {
             await HandleOperation(message, cancellationToken);
         }
@@ -43,26 +43,30 @@ public class InfoOrganizationController(
         //устанавливаем кнопки, сообщение и состояние
         switch (message.Text)
         {
-            case "По ОКПО":
-                textMessage = ConstTextMessage.SearchOkpo;
+            //По ОКПО
+            case NameButton.ByOkpo:
+                textMessage = TextMessage.SearchOkpo;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
                 stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchOkpo);
                 break;
-            case "По ИНН":
-                textMessage = ConstTextMessage.SearchInn;
+            //По ИНН
+            case NameButton.ByInn:
+                textMessage = TextMessage.SearchInn;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
                 stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchInn);
                 break;
-            case "По ОГРН/ОГРНИП":
-                textMessage = ConstTextMessage.SearchOgrnOgrnip;
+            //По ОГРН/ОГРНИП
+            case NameButton.ByOgrn:
+                textMessage = TextMessage.SearchOgrnOgrnip;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
                 stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchOgrnOgrnip);
                 break;
-            case "Назад":
-                textMessage = ConstTextMessage.SelectCommand;
+            //Назад
+            case NameButton.Back:
+                textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsInfoCodesAndListForm;
                 //меняем состояние меню
                 stateUser.SetStateMenu(message.Chat.Id, MenuItems.InfoMainMenu);
@@ -71,7 +75,7 @@ public class InfoOrganizationController(
                 break;
             default:
                 //по умолчанию кнопки меню
-                textMessage = ConstTextMessage.UnknownCommand;
+                textMessage = TextMessage.UnknownCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //скидываем состояние выбранной операции
                 stateUser.RemoveOperationCode(message.Chat.Id);
