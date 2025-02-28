@@ -5,6 +5,7 @@ using Application.Models;
 using FluentValidation;
 using FluentValidation.Results;
 using StatBotTelegram.Components;
+using StatBotTelegram.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -13,8 +14,8 @@ using Telegram.Bot.Types.ReplyMarkups;
 namespace StatBotTelegram.Controllers;
 
 public class ListFormController(
-    ITelegramBotClient botClient, 
-    IStateUser stateUser, 
+    ITelegramBotClient botClient,
+    IStateUser stateUser,
     IValidator<RequestInfoForm> validatorRequestInfoForm,
     IListForm listFormService)
 {
@@ -32,12 +33,12 @@ public class ListFormController(
             await HandleButton(message, cancellationToken);
         }
     }
-    
+
     private async Task HandleButton(Message message, CancellationToken cancellationToken)
     {
         var textMessage = string.Empty;
         KeyboardButton[][] buttonMenu = null;
-        
+
         //в зависимости от выбранной кнопки
         //устанавливаем кнопки, сообщение и состояние
         switch (message.Text)
@@ -80,7 +81,7 @@ public class ListFormController(
                 stateUser.RemoveOperationCode(message.Chat.Id);
                 break;
         }
-        
+
         //отправляем ответ
         await botClient.SendMessage(chatId: message.Chat.Id,
             protectContent: true, replyParameters: message.Id,
@@ -88,7 +89,7 @@ public class ListFormController(
             parseMode: ParseMode.Html, cancellationToken: cancellationToken,
             replyMarkup: buttonMenu);
     }
-    
+
     private async Task HandleOperation(Message message, CancellationToken cancellationToken)
     {
         var operationState = stateUser.GetState(message.Chat.Id).OperationItem;
@@ -123,16 +124,21 @@ public class ListFormController(
                 validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
                 break;
         }
-        
-        var result = !validationResult.IsValid ? 
-            validationResult.Errors.ToDto() : 
-            await listFormService.GetListForm(filter, cancellationToken);
-        
-        //ответ
-        await botClient.SendMessage(chatId: message.Chat.Id,
-            protectContent: false, replyParameters: message.Id,
-            text: result,
-            parseMode: ParseMode.Html, cancellationToken: cancellationToken,
-            replyMarkup: KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn);
+
+        var result = !validationResult.IsValid
+            ? validationResult.Errors.ToDto()
+            : await listFormService.GetListForm(filter, cancellationToken);
+
+        var splitMessages = SplitterMessage.SplitMessage(result);
+
+        foreach (var messagePart in splitMessages)
+        {
+            //ответ
+            await botClient.SendMessage(chatId: message.Chat.Id,
+                protectContent: false, replyParameters: message.Id,
+                text: messagePart,
+                parseMode: ParseMode.Html, cancellationToken: cancellationToken,
+                replyMarkup: KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn);
+        }
     }
 }

@@ -12,8 +12,9 @@ public static class ListFormExtensions
         var result = "<b>Перечень форм:</b>\n\n";
 
         var dto = forms.Select(f =>
-            $"Форма: {f.Index}\n" +
-            $"Название: {f.Name}\n");
+            $"Индекс формы: {f.Index}\n" +
+            $"Периодичность формы: {f.FormPeriod}\n" +
+            $"ОКУД: {f.Okud}\n");
 
         return string.Concat(result, string.Join("\n", dto));
     }
