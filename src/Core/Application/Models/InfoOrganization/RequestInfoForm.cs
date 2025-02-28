@@ -6,11 +6,11 @@ namespace Application.Models;
 public class RequestInfoForm
 {
     [JsonProperty(PropertyName = "okpo")]
-    public string? Okpo { get; set; }
+    public string? Okpo { get; set; } = string.Empty;
     
     [JsonProperty(PropertyName = "inn")]
-    public string? Inn { get; set; }
+    public string? Inn { get; set; } = string.Empty;
     
     [JsonProperty(PropertyName = "ogrn")]
-    public string? Ogrn { get; set; }
+    public string? Ogrn { get; set; } = string.Empty;
 }

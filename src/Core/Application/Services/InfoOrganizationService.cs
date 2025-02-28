@@ -8,30 +8,39 @@ using Newtonsoft.Json;
 
 namespace Application.Services;
 
-public class InfoOrganizationService(IRequesterApi requesterApi) : IInfoOrganizationService
+public class InfoOrganizationService(IRequesterApi requesterApi, ICache cacheRedis) : IInfoOrganizationService
 {
     public async Task<string> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken ct)
     {
         string result = String.Empty;
-        var responce = await requesterApi.PostAsync<RequestInfoForm>("/webstat/api/gs/organizations", requestInfo, ct);
+        //проверяем кэш
+        result = await cacheRedis.GetInfoOrganization(requestInfo, ct);
+
+        if (result == null)
+        {
+            var responce = await requesterApi.PostAsync<RequestInfoForm>("/webstat/api/gs/organizations", requestInfo, ct);
         
-        if (responce.IsSuccessStatusCode)
-        {
-            var dataResponce = await responce.Content.ReadAsStringAsync();
-            result = JsonConvert
-                .DeserializeObject<List<InfoOrganization>>(dataResponce)
-                .ToDto();
-        }
-        else if (responce.StatusCode == System.Net.HttpStatusCode.BadRequest)
-        {
-            var dataResponce = await responce.Content.ReadAsStringAsync();
-            result = JsonConvert
-                .DeserializeObject<ErrorInfoOrganization>(dataResponce)
-                .ToDto();
-        }
-        else
-        {
-            result = "Сервис получения данных временно недоступен!";
+            if (responce.IsSuccessStatusCode)
+            {
+                var dataResponce = await responce.Content.ReadAsStringAsync();
+                var infoOrg = JsonConvert
+                    .DeserializeObject<List<InfoOrganization>>(dataResponce);
+                result = infoOrg.ToDto();
+
+                //пишем в кэш
+                await cacheRedis.SetInfoOrganization(infoOrg[0], result, ct);
+            }
+            else if (responce.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var dataResponce = await responce.Content.ReadAsStringAsync();
+                result = JsonConvert
+                    .DeserializeObject<ErrorInfoOrganization>(dataResponce)
+                    .ToDto();
+            }
+            else
+            {
+                result = "Сервис получения данных временно недоступен!";
+            }
         }
 
         return result;

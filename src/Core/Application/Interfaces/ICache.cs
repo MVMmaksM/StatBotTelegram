@@ -5,9 +5,10 @@ namespace Application.Interfaces;
 
 public interface ICache
 {
-    Task<UserState>? GetState(long chatId, CancellationToken cancellationToken);
+    Task<UserState>? GetUserState(long chatId, CancellationToken cancellationToken);
     Task<UserState> SetStateMenu(long chatId, MenuItems menuItem, CancellationToken cancellationToken);
     Task<UserState>  SetOperationCode(long chatId, OperationCode operationCode, CancellationToken cancellationToken);
     Task RemoveOperationCode(long chatId, CancellationToken cancellationToken);
-    bool ExistStateMenu(long chatId);
+    Task<string> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken cancellationToken);
+    Task SetInfoOrganization(InfoOrganization organization, string info, CancellationToken cancellationToken);
 }

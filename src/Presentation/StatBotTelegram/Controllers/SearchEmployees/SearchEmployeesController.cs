@@ -12,7 +12,7 @@ public class SearchEmployeesController(ITelegramBotClient botClient, ICache cach
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
-        var state = await cache.GetState(message.Chat.Id, cancellationToken);
+        var state = await cache.GetUserState(message.Chat.Id, cancellationToken);
         if (state.OperationItem is not null && 
             (message.Text != NameButton.Back && message.Text != NameButton.ByOkud && message.Text != NameButton.ByFio && 
              message.Text != NameButton.ByPhoneEmployee))
@@ -26,7 +26,7 @@ public class SearchEmployeesController(ITelegramBotClient botClient, ICache cach
     }
     private async Task HandleOperation(Message message, CancellationToken cancellationToken)
     {
-        var operationState = await cache.GetState(message.Chat.Id, cancellationToken);
+        var operationState = await cache.GetUserState(message.Chat.Id, cancellationToken);
         
         switch (operationState.OperationItem)
         {

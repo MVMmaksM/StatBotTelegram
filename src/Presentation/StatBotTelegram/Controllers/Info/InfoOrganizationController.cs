@@ -21,7 +21,7 @@ public class InfoOrganizationController(
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
-        var state = await cache.GetState(message.Chat.Id, cancellationToken);
+        var state = await cache.GetUserState(message.Chat.Id, cancellationToken);
         if (state.OperationItem is not null &&
             (message.Text != NameButton.Back && message.Text != NameButton.ByOkpo && message.Text != NameButton.ByInn &&
              message.Text != NameButton.ByOgrn))
@@ -92,7 +92,7 @@ public class InfoOrganizationController(
 
     private async Task HandleOperation(Message message, CancellationToken cancellationToken)
     {
-        var operationState = await cache.GetState(message.Chat.Id, cancellationToken);
+        var operationState = await cache.GetUserState(message.Chat.Id, cancellationToken);
         var filter = new RequestInfoForm();
         ValidationResult validationResult = null;
         //в зависимости от выбранной операции 
@@ -102,23 +102,17 @@ public class InfoOrganizationController(
             case OperationCode.SearchOkpo:
                 //составляем фильтр
                 filter.Okpo = message.Text.Trim();
-                filter.Inn = string.Empty;
-                filter.Ogrn = string.Empty;
                 //валидация
                 validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
                 break;
             case OperationCode.SearchInn:
                 //составляем фильтр
-                filter.Okpo = string.Empty;
                 filter.Inn = message.Text.Trim();
-                filter.Ogrn = string.Empty;
                 //валидация
                 validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
                 break;
             case OperationCode.SearchOgrnOgrnip:
                 //составляем фильтр
-                filter.Okpo = string.Empty;
-                filter.Inn = string.Empty;
                 filter.Ogrn = message.Text.Trim();
                 //валидация
                 validationResult = await validatorRequestInfoForm.ValidateAsync(filter);

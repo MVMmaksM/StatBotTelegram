@@ -44,7 +44,7 @@ public class CacheRedis(IDistributedCache cacheRedis) : ICache
     /// </summary>
     /// <param name="chatId"></param>
     /// <returns></returns>
-    public async Task<UserState>? GetState(long chatId, CancellationToken cancellationToken)
+    public async Task<UserState>? GetUserState(long chatId, CancellationToken cancellationToken)
     {
         var key = string.Concat("userState_", chatId);
         var userStateStr = await cacheRedis.GetStringAsync(key, cancellationToken);
@@ -85,9 +85,53 @@ public class CacheRedis(IDistributedCache cacheRedis) : ICache
         
         return userState;
     }
-
-    public bool ExistStateMenu(long chatId)
+    public async Task<string> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken cancellationToken)
     {
-        return true;
+        var result = string.Empty;
+        
+        if (requestInfo.Okpo != String.Empty)
+        {
+            var key = string.Concat("infoOkpo_", requestInfo.Okpo);
+            result = await cacheRedis.GetStringAsync(key, cancellationToken);
+        }
+
+        if (requestInfo.Ogrn != string.Empty)
+        {
+            var key = string.Concat("infoOgrn_", requestInfo.Ogrn);
+            result = await cacheRedis.GetStringAsync(key, cancellationToken);
+        }
+        
+        if (requestInfo.Inn != string.Empty)
+        {
+            var key = string.Concat("infoInn_", requestInfo.Inn);
+            result = await cacheRedis.GetStringAsync(key, cancellationToken);
+        }
+        
+        return result;
+    }
+
+    public async Task SetInfoOrganization(InfoOrganization organization, string info, CancellationToken cancellationToken)
+    {
+        var keys = new List<string>()
+        {
+            string.Concat("infoOkpo_", organization.Okpo),
+            string.Concat("infoOgrn_", organization.Ogrn),
+            string.Concat("infoInn_", organization.Inn)
+        };
+
+        var cacheOptions = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
+        };
+
+        foreach (var key in keys)
+        {
+            var infoStr = await cacheRedis.GetStringAsync(key, cancellationToken);
+
+            if (infoStr == null)
+            {
+                await cacheRedis.SetStringAsync(key, info, cacheOptions, cancellationToken);
+            }
+        }
     }
 }

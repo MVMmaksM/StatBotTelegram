@@ -30,7 +30,7 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
     {
         if (update.Type == UpdateType.Message)
         {
-            var state = await cache.GetState(update.Message.Chat.Id, cancellationToken);
+            var state = await cache.GetUserState(update.Message.Chat.Id, cancellationToken);
             if (state is null || state.MenuItem == MenuItems.MainMenu || update.Message.Text == "/start")
             {
                 await mainMenuController.Handle(update.Message, cancellationToken);

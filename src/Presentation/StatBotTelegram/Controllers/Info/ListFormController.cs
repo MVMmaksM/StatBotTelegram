@@ -21,7 +21,7 @@ public class ListFormController(
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
-        var state = await cache.GetState(message.Chat.Id, cancellationToken);
+        var state = await cache.GetUserState(message.Chat.Id, cancellationToken);
         if (state.OperationItem is not null &&
             (message.Text != NameButton.Back && message.Text != NameButton.ByOkpo && message.Text != NameButton.ByInn &&
              message.Text != NameButton.ByOgrn))
@@ -92,7 +92,7 @@ public class ListFormController(
 
     private async Task HandleOperation(Message message, CancellationToken cancellationToken)
     {
-        var operationState = await cache.GetState(message.Chat.Id, cancellationToken);
+        var operationState = await cache.GetUserState(message.Chat.Id, cancellationToken);
         var filter = new RequestInfoForm();
         ValidationResult validationResult = null;
         //в зависимости от выбранной операции 
