@@ -15,13 +15,13 @@ namespace StatBotTelegram.Controllers;
 
 public class InfoOrganizationController(
     ITelegramBotClient botClient,
-    IStateUser stateUser,
+    ICache cache,
     IInfoOrganizationService infoOrganizationService,
     IValidator<RequestInfoForm> validatorRequestInfoForm)
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
-        var state = stateUser.GetState(message.Chat.Id);
+        var state = await cache.GetState(message.Chat.Id, cancellationToken);
         if (state.OperationItem is not null &&
             (message.Text != NameButton.Back && message.Text != NameButton.ByOkpo && message.Text != NameButton.ByInn &&
              message.Text != NameButton.ByOgrn))
@@ -48,37 +48,37 @@ public class InfoOrganizationController(
                 textMessage = TextMessage.SearchOkpo;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
-                stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchOkpo);
+                await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOkpo, cancellationToken);
                 break;
             //По ИНН
             case NameButton.ByInn:
                 textMessage = TextMessage.SearchInn;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
-                stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchInn);
+                await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchInn, cancellationToken);
                 break;
             //По ОГРН/ОГРНИП
             case NameButton.ByOgrn:
                 textMessage = TextMessage.SearchOgrnOgrnip;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
-                stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchOgrnOgrnip);
+                await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOgrnOgrnip, cancellationToken);
                 break;
             //Назад
             case NameButton.Back:
                 textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsInfoCodesAndListForm;
                 //меняем состояние меню
-                stateUser.SetStateMenu(message.Chat.Id, MenuItems.InfoMainMenu);
+                await cache.SetStateMenu(message.Chat.Id, MenuItems.InfoMainMenu, cancellationToken);
                 //скидываем состояние выбранной операции
-                stateUser.RemoveOperationCode(message.Chat.Id);
+                await cache.RemoveOperationCode(message.Chat.Id, cancellationToken);
                 break;
             default:
                 //по умолчанию кнопки меню
                 textMessage = TextMessage.UnknownCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //скидываем состояние выбранной операции
-                stateUser.RemoveOperationCode(message.Chat.Id);
+                await cache.RemoveOperationCode(message.Chat.Id, cancellationToken);
                 break;
         }
         
@@ -92,12 +92,12 @@ public class InfoOrganizationController(
 
     private async Task HandleOperation(Message message, CancellationToken cancellationToken)
     {
-        var operationState = stateUser.GetState(message.Chat.Id).OperationItem;
+        var operationState = await cache.GetState(message.Chat.Id, cancellationToken);
         var filter = new RequestInfoForm();
         ValidationResult validationResult = null;
         //в зависимости от выбранной операции 
         //составляем фильтр
-        switch (operationState)
+        switch (operationState.OperationItem)
         {
             case OperationCode.SearchOkpo:
                 //составляем фильтр

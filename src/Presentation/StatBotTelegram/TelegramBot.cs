@@ -15,7 +15,7 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
     InfoMainMenuController infoMainMenuController,
     InfoOrganizationController infoOrganizationController,
     ListFormController listFormController,
-    IStateUser stateUser) : BackgroundService
+    ICache cache) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -30,7 +30,7 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
     {
         if (update.Type == UpdateType.Message)
         {
-            var state = stateUser.GetState(update.Message.Chat.Id);
+            var state = await cache.GetState(update.Message.Chat.Id, cancellationToken);
             if (state is null || state.MenuItem == MenuItems.MainMenu || update.Message.Text == "/start")
             {
                 await mainMenuController.Handle(update.Message, cancellationToken);

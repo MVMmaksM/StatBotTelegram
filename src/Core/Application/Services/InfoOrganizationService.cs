@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Application.Extensions;
 using Application.Interfaces;
 using Application.Models;
+using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 
 namespace Application.Services;

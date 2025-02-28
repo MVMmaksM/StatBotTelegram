@@ -24,11 +24,21 @@ public static class ServiceCollectionsExtension
         builder.Services.AddTransient<IInfoOrganizationService, InfoOrganizationService>();
         builder.Services.AddTransient<IListForm, ListFormService>();
    
-        builder.Services.AddSingleton<IStateUser, StorageStateUser>();
+        builder.Services.AddSingleton<ICache, CacheRedis>();
         
         builder.Services.AddHttpClient<IRequesterApi, RequesterApi>(clientConfigure =>
         {
             clientConfigure.BaseAddress = new Uri(builder.Configuration.GetSection("BaseAddressWebsbor")?.Value);
+        });
+        
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = builder.Configuration.GetSection("RedisCache")?.Value;
+            options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions()
+            {
+                AbortOnConnectFail = true,
+                EndPoints = { options.Configuration }
+            };
         });
 
         builder.Services.AddValidatorsFromAssemblyContaining<RequestInfoForm>(ServiceLifetime.Transient);

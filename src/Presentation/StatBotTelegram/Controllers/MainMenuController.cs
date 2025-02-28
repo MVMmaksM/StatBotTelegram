@@ -8,7 +8,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace StatBotTelegram.Controllers;
 
-public class MainMenuController(ITelegramBotClient botClient, IStateUser stateUser)
+public class MainMenuController(ITelegramBotClient botClient, ICache cache)
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
@@ -22,21 +22,21 @@ public class MainMenuController(ITelegramBotClient botClient, IStateUser stateUs
             //start
             case NameButton.Start:
                 //устанавливаем состояние
-                stateUser.SetStateMenu(message.Chat.Id, MenuItems.MainMenu);
+                await cache.SetStateMenu(message.Chat.Id, MenuItems.MainMenu, cancellationToken);
                 textMessage = $"Добро пожаловать, {message.From.FirstName}!\n\n{TextMessage.WelcomeText}";
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 break;
             //Поиск специалиста, ответственного за форму
             case NameButton.SearchEmployees:
                 //устанавливаем состояние
-                stateUser.SetStateMenu(message.Chat.Id, MenuItems.SearchEmployees);
+                await cache.SetStateMenu(message.Chat.Id, MenuItems.SearchEmployees, cancellationToken);
                 textMessage = TextMessage.SearchEmployees;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 break; 
             //Получение данных о кодах статистики и перечня форм
             case NameButton.GetInfoCodesAndListForms:
                 //устанавливаем состояние
-                stateUser.SetStateMenu(message.Chat.Id, MenuItems.InfoMainMenu);
+                await cache.SetStateMenu(message.Chat.Id, MenuItems.InfoMainMenu, cancellationToken);
                 textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsInfoCodesAndListForm;
                 break;

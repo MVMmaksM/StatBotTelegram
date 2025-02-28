@@ -8,11 +8,11 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace StatBotTelegram.Controllers;
 
-public class SearchEmployeesController(ITelegramBotClient botClient, IStateUser stateUser)
+public class SearchEmployeesController(ITelegramBotClient botClient, ICache cache)
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
-        var state = stateUser.GetState(message.Chat.Id);
+        var state = await cache.GetState(message.Chat.Id, cancellationToken);
         if (state.OperationItem is not null && 
             (message.Text != NameButton.Back && message.Text != NameButton.ByOkud && message.Text != NameButton.ByFio && 
              message.Text != NameButton.ByPhoneEmployee))
@@ -26,9 +26,9 @@ public class SearchEmployeesController(ITelegramBotClient botClient, IStateUser 
     }
     private async Task HandleOperation(Message message, CancellationToken cancellationToken)
     {
-        var operationState = stateUser.GetState(message.Chat.Id).OperationItem;
+        var operationState = await cache.GetState(message.Chat.Id, cancellationToken);
         
-        switch (operationState)
+        switch (operationState.OperationItem)
         {
             case OperationCode.SearchOkud:
                 //ответ
@@ -52,30 +52,30 @@ public class SearchEmployeesController(ITelegramBotClient botClient, IStateUser 
                 textMessage = TextMessage.SearchOkud;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 //устанавливаем состояние выбранной команды
-                stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchOkud);
+                await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOkud, cancellationToken);
                 break;
             //По фамилии специалиста
             case NameButton.ByFio:
                 textMessage = TextMessage.SearchFioEmployee;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 //устанавливаем состояние выбранной команды
-                stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchFio);
+                await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchFio, cancellationToken);
                 break;
             //По номеру телефона специалиста
             case NameButton.ByPhoneEmployee:
                 textMessage = TextMessage.SearchPhoneEmployee;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 //устанавливаем состояние выбранной команды
-                stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchPhone);
+                await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchPhone, cancellationToken);
                 break;
             //Назад
             case NameButton.Back:
                 textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 //меняем состояние меню
-                stateUser.SetStateMenu(message.Chat.Id, MenuItems.MainMenu);
+                await cache.SetStateMenu(message.Chat.Id, MenuItems.MainMenu, cancellationToken);
                 //скидываем состояние выбранной операции
-                stateUser.RemoveOperationCode(message.Chat.Id);
+                await cache.RemoveOperationCode(message.Chat.Id, cancellationToken);
                 break;
             default:
                 textMessage = TextMessage.UnknownCommand;

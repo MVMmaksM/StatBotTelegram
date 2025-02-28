@@ -8,7 +8,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace StatBotTelegram.Controllers;
 
-public class InfoMainMenuController(ITelegramBotClient botClient, IStateUser stateUser)
+public class InfoMainMenuController(ITelegramBotClient botClient, ICache cache)
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
@@ -22,27 +22,27 @@ public class InfoMainMenuController(ITelegramBotClient botClient, IStateUser sta
                 textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем сосотояние
-                stateUser.SetStateMenu(message.Chat.Id, MenuItems.GetInfoOrganization);
+                await cache.SetStateMenu(message.Chat.Id, MenuItems.GetInfoOrganization, cancellationToken);
                 break;
             //Получить перечень форм
             case NameButton.GetListForms:
                 textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем сосотояние
-                stateUser.SetStateMenu(message.Chat.Id, MenuItems.GetListForm);
+                await cache.SetStateMenu(message.Chat.Id, MenuItems.GetListForm, cancellationToken);
                 break;
             //Назад
             case NameButton.Back:
                 textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 //устанавливаем сосотояние
-                stateUser.SetStateMenu(message.Chat.Id, MenuItems.MainMenu);
+                await cache.SetStateMenu(message.Chat.Id, MenuItems.MainMenu, cancellationToken);
                 break;
             default:
                 textMessage = TextMessage.UnknownCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsInfoCodesAndListForm;
                 //сбрасываем состояние команды
-                stateUser.RemoveOperationCode(message.Chat.Id);
+                await cache.RemoveOperationCode(message.Chat.Id, cancellationToken);
                 break;
         }
         
