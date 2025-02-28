@@ -4,6 +4,7 @@ using StatBotTelegram.Components;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace StatBotTelegram.Controllers;
 
@@ -21,12 +22,6 @@ public class SearchEmployeesController(ITelegramBotClient botClient, IStateUser 
             await HandleButton(message, cancellationToken); 
         }
     }
-
-    /// <summary>
-    /// обработка операций
-    /// </summary>
-    /// <param name="message"></param>
-    /// <param name="cancellationToken"></param>
     private async Task HandleOperation(Message message, CancellationToken cancellationToken)
     {
         var operationState = stateUser.GetState(message.Chat.Id).OperationItem;
@@ -43,46 +38,37 @@ public class SearchEmployeesController(ITelegramBotClient botClient, IStateUser 
                 break;
         }
     }
-
-    /// <summary>
-    /// обработка нажати яна кнопки
-    /// </summary>
-    /// <param name="message"></param>
-    /// <param name="cancellationToken"></param>
     private async Task HandleButton(Message message, CancellationToken cancellationToken)
     {
+        var textMessage = string.Empty;
+        KeyboardButton[][] buttonMenu = null;
+        
         switch (message.Text)
         {
             case "По ОКУД формы":
-                //ответ
-                await botClient.SendMessage(chatId: message.Chat.Id, 
-                    protectContent: true, replyParameters: message.Id,
-                    text: $"{ConstTextMessage.SearchOkud}",
-                    parseMode: ParseMode.Html, cancellationToken: cancellationToken,
-                    replyMarkup: KeyboradButtonMenu.ButtonsSearchEmployeesMenu);
+                textMessage = ConstTextMessage.SearchOkud;
+                buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 //устанавливаем состояние выбранной команды
                 stateUser.SetOperationCode(message.Chat.Id, OperationCode.SearchOkud);
                 break;
             case "Назад":
-                //отправляем ответ
-                await botClient.SendMessage(chatId: message.Chat.Id, 
-                    protectContent: true, replyParameters: message.Id,
-                    text: $"{ConstTextMessage.SelectCommand}",
-                    parseMode: ParseMode.Html, cancellationToken: cancellationToken,
-                    replyMarkup: KeyboradButtonMenu.ButtonsMainMenu);
+                textMessage = ConstTextMessage.SelectCommand;
+                buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 //меняем состояние меню
                 stateUser.SetStateMenu(message.Chat.Id, MenuItems.MainMenu);
                 //скидываем состояние выбранной операции
                 stateUser.RemoveOperationCode(message.Chat.Id);
                 break;
             default:
-                //по умолчанию отправляем кнопки меню
-                await botClient.SendMessage(chatId: message.Chat.Id, 
-                    protectContent: true, replyParameters: message.Id,
-                    text: $"{ConstTextMessage.UnknownCommand}",
-                    parseMode: ParseMode.Html, cancellationToken: cancellationToken,
-                    replyMarkup: KeyboradButtonMenu.ButtonsSearchEmployeesMenu);
+                textMessage = ConstTextMessage.UnknownCommand;
+                buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 break;
         }
+        //отправляем ответ
+        await botClient.SendMessage(chatId: message.Chat.Id, 
+            protectContent: true, replyParameters: message.Id,
+            text: textMessage,
+            parseMode: ParseMode.Html, cancellationToken: cancellationToken,
+            replyMarkup: buttonMenu);
     }
 }
