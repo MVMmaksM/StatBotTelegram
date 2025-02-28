@@ -8,3 +8,4 @@ src/Core/Application/obj
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+.idea/
