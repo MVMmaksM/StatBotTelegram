@@ -20,21 +20,21 @@ public class MainMenuController(ITelegramBotClient botClient, ICache cache)
         switch (message.Text)
         {
             //start
-            case NameButton.Start:
+            case NameButton.START:
                 //устанавливаем состояние
                 await cache.SetStateMenu(message.Chat.Id, MenuItems.MainMenu, cancellationToken);
                 textMessage = $"Добро пожаловать, {message.From.FirstName}!\n\n{TextMessage.WelcomeText}";
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 break;
             //Поиск специалиста, ответственного за форму
-            case NameButton.SearchEmployees:
+            case NameButton.SEARCH_EMPLOYEES:
                 //устанавливаем состояние
                 await cache.SetStateMenu(message.Chat.Id, MenuItems.SearchEmployees, cancellationToken);
                 textMessage = TextMessage.SearchEmployees;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 break; 
             //Получение данных о кодах статистики и перечня форм
-            case NameButton.GetInfoCodesAndListForms:
+            case NameButton.GET_INFO_CODES_AND_LIST_FORMS:
                 //устанавливаем состояние
                 await cache.SetStateMenu(message.Chat.Id, MenuItems.InfoMainMenu, cancellationToken);
                 textMessage = TextMessage.SelectCommand;

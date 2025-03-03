@@ -14,8 +14,8 @@ public class SearchEmployeesController(ITelegramBotClient botClient, ICache cach
     {
         var state = await cache.GetUserState(message.Chat.Id, cancellationToken);
         if (state.OperationItem is not null && 
-            (message.Text != NameButton.Back && message.Text != NameButton.ByOkud && message.Text != NameButton.ByFio && 
-             message.Text != NameButton.ByPhoneEmployee))
+            (message.Text != NameButton.BACK && message.Text != NameButton.BY_OKUD && message.Text != NameButton.BY_FIO && 
+             message.Text != NameButton.BY_PHONE_EMPLOYEE))
         {
             await HandleOperation(message, cancellationToken);
         }
@@ -48,28 +48,28 @@ public class SearchEmployeesController(ITelegramBotClient botClient, ICache cach
         switch (message.Text)
         {
             //По ОКУД формы
-            case NameButton.ByOkud:
+            case NameButton.BY_OKUD:
                 textMessage = TextMessage.SearchOkud;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOkud, cancellationToken);
                 break;
             //По фамилии специалиста
-            case NameButton.ByFio:
+            case NameButton.BY_FIO:
                 textMessage = TextMessage.SearchFioEmployee;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchFio, cancellationToken);
                 break;
             //По номеру телефона специалиста
-            case NameButton.ByPhoneEmployee:
+            case NameButton.BY_PHONE_EMPLOYEE:
                 textMessage = TextMessage.SearchPhoneEmployee;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchPhone, cancellationToken);
                 break;
             //Назад
-            case NameButton.Back:
+            case NameButton.BACK:
                 textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 //меняем состояние меню

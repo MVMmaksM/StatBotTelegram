@@ -23,8 +23,8 @@ public class InfoOrganizationController(
     {
         var state = await cache.GetUserState(message.Chat.Id, cancellationToken);
         if (state.OperationItem is not null &&
-            (message.Text != NameButton.Back && message.Text != NameButton.ByOkpo && message.Text != NameButton.ByInn &&
-             message.Text != NameButton.ByOgrn))
+            (message.Text != NameButton.BACK && message.Text != NameButton.BY_OKPO && message.Text != NameButton.BY_INN &&
+             message.Text != NameButton.BY_OGRN))
         {
             await HandleOperation(message, cancellationToken);
         }
@@ -44,28 +44,28 @@ public class InfoOrganizationController(
         switch (message.Text)
         {
             //По ОКПО
-            case NameButton.ByOkpo:
+            case NameButton.BY_OKPO:
                 textMessage = TextMessage.SearchOkpo;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOkpo, cancellationToken);
                 break;
             //По ИНН
-            case NameButton.ByInn:
+            case NameButton.BY_INN:
                 textMessage = TextMessage.SearchInn;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchInn, cancellationToken);
                 break;
             //По ОГРН/ОГРНИП
-            case NameButton.ByOgrn:
+            case NameButton.BY_OGRN:
                 textMessage = TextMessage.SearchOgrnOgrnip;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOgrnOgrnip, cancellationToken);
                 break;
             //Назад
-            case NameButton.Back:
+            case NameButton.BACK:
                 textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsInfoCodesAndListForm;
                 //меняем состояние меню

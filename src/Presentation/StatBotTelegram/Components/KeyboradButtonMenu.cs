@@ -13,15 +13,15 @@ public static class KeyboradButtonMenu
         new KeyboardButton[]
         {
             //Статотчетность в электронном виде
-            new KeyboardButton(NameButton.StatReportInElectron)
+            new KeyboardButton(NameButton.STAT_REPORT_IN_ELECTRON)
         },
         //вторая строка кнопок
         new KeyboardButton[]
         {
             //Получение данных о кодах статистики и перечня форм
-            new KeyboardButton(NameButton.GetInfoCodesAndListForms),
+            new KeyboardButton(NameButton.GET_INFO_CODES_AND_LIST_FORMS),
             //Поиск специалиста, ответственного за форму
-            new KeyboardButton(NameButton.SearchEmployees)
+            new KeyboardButton(NameButton.SEARCH_EMPLOYEES)
         }
     };
     
@@ -34,21 +34,21 @@ public static class KeyboradButtonMenu
         new KeyboardButton[]
         {
             //По ОКУД формы
-            new KeyboardButton(NameButton.ByOkud),
+            new KeyboardButton(NameButton.BY_OKUD),
             //По ФИО
-            new KeyboardButton(NameButton.ByFio)
+            new KeyboardButton(NameButton.BY_FIO)
         },
         //вторая строка кнопок
         new KeyboardButton[]
         {
             //По номеру телефона специалиста
-            new KeyboardButton(NameButton.ByPhoneEmployee)
+            new KeyboardButton(NameButton.BY_PHONE_EMPLOYEE)
         },
         //третья строка кнопок
         new KeyboardButton[]
         {
             //Назад
-            new KeyboardButton(NameButton.Back)
+            new KeyboardButton(NameButton.BACK)
         }
     };
     
@@ -61,15 +61,15 @@ public static class KeyboradButtonMenu
         new KeyboardButton[]
         {
             //Получить данные о кодах статистики организации
-            new KeyboardButton(NameButton.GetInfoOrganization),
+            new KeyboardButton(NameButton.GET_INFO_ORGANIZATION),
             //Получить перечень форм
-            new KeyboardButton(NameButton.GetListForms)
+            new KeyboardButton(NameButton.GET_LIST_FORMS)
         },
         //вторая строка кнопок
         new KeyboardButton[]
         {
             //Назад
-            new KeyboardButton(NameButton.Back)
+            new KeyboardButton(NameButton.BACK)
         }
     };
     
@@ -79,20 +79,20 @@ public static class KeyboradButtonMenu
         new KeyboardButton[]
         {
             //По ОКПО
-            new KeyboardButton(NameButton.ByOkpo),
+            new KeyboardButton(NameButton.BY_OKPO),
             //По ИНН
-            new KeyboardButton(NameButton.ByInn)
+            new KeyboardButton(NameButton.BY_INN)
         },
         //вторая строка кнопок
         new KeyboardButton[]
         {
             //По ОГРН/ОГРНИП
-            new KeyboardButton(NameButton.ByOgrn)
+            new KeyboardButton(NameButton.BY_OGRN)
         },
         new KeyboardButton[]
         {
             //Назад
-            new KeyboardButton(NameButton.Back)
+            new KeyboardButton(NameButton.BACK)
         }
     };
 

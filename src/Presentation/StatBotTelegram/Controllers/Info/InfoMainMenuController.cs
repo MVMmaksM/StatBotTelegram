@@ -18,21 +18,21 @@ public class InfoMainMenuController(ITelegramBotClient botClient, ICache cache)
         switch (message.Text)
         {
             //Получить данные о кодах статистики организации
-            case NameButton.GetInfoOrganization:
+            case NameButton.GET_INFO_ORGANIZATION:
                 textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем сосотояние
                 await cache.SetStateMenu(message.Chat.Id, MenuItems.GetInfoOrganization, cancellationToken);
                 break;
             //Получить перечень форм
-            case NameButton.GetListForms:
+            case NameButton.GET_LIST_FORMS:
                 textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем сосотояние
                 await cache.SetStateMenu(message.Chat.Id, MenuItems.GetListForm, cancellationToken);
                 break;
             //Назад
-            case NameButton.Back:
+            case NameButton.BACK:
                 textMessage = TextMessage.SelectCommand;
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 //устанавливаем сосотояние
