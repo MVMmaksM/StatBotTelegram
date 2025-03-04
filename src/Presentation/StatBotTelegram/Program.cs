@@ -1,3 +1,4 @@
+using Persisitence.Database;
 using StatBotTelegram.Extensions;
 
 namespace StatBotTelegram;
@@ -10,6 +11,7 @@ public class Program
         builder.AddAppServices();
 
         var host = builder.Build();
+        host.ExecuteMigrate();
         await host.RunAsync();
     }
 }

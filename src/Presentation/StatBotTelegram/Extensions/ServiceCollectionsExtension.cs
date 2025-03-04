@@ -6,6 +6,8 @@ using StatBotTelegram.Components;
 using StatBotTelegram.Controllers;
 using Telegram.Bot;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Persisitence.Database;
 
 namespace StatBotTelegram.Extensions;
 
@@ -42,9 +44,25 @@ public static class ServiceCollectionsExtension
             };
         });
 
+        builder.Services.AddDbContext<AppDbContext>();
         builder.Services.AddValidatorsFromAssemblyContaining<RequestInfoForm>(ServiceLifetime.Transient);
         builder.Services.AddHostedService<TelegramBot>();
         
         return builder;
+    }
+
+    /// <summary>
+    /// для применения миграций
+    /// </summary>
+    /// <param name="host"></param>
+    public static void ExecuteMigrate(this IHost host)
+    {
+        using (var scope = host.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            var dbContext = services.GetRequiredService<AppDbContext>();
+            if(dbContext.Database.GetPendingMigrations().Any())
+                dbContext.Database.Migrate();
+        }
     }
 }
