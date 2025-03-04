@@ -1,0 +1,29 @@
+services:
+  statbot_telegram:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+      - redis
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    container_name: db_postgresql_statbot_telegram 
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/var/lib/redis/data
+    container_name: redis_statbot_telegram
+volumes:
+  redis_data:
+  db_data:

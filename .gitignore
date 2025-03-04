@@ -5,6 +5,7 @@ src/Core/Domain/bin
 src/Core/Domain/obj
 src/Core/Application/bin
 src/Core/Application/obj
+docker-compose.yml
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
