@@ -5,6 +5,7 @@ using FluentValidation;
 using StatBotTelegram.Components;
 using StatBotTelegram.Controllers;
 using Telegram.Bot;
+using Domain.Entities;
 
 namespace StatBotTelegram.Extensions;
 
