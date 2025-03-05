@@ -10,6 +10,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using FluentValidation.Results;
+using StatBotTelegram.Helpers;
 
 namespace StatBotTelegram.Controllers;
 
@@ -123,11 +124,16 @@ public class InfoOrganizationController(
             validationResult.Errors.ToDto() : 
             await infoOrganization.GetInfoOrganization(filter, cancellationToken);
         
-        //ответ
-        await botClient.SendMessage(chatId: message.Chat.Id,
-            protectContent: false, replyParameters: message.Id,
-            text: result,
-            parseMode: ParseMode.Html, cancellationToken: cancellationToken,
-            replyMarkup: KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn);
+        var splitMessages = SplitterMessage.SplitMessage(result);
+
+        foreach (var messagePart in splitMessages)
+        {
+            //ответ
+            await botClient.SendMessage(chatId: message.Chat.Id,
+                protectContent: false, replyParameters: message.Id,
+                text: messagePart ,
+                parseMode: ParseMode.Html, cancellationToken: cancellationToken,
+                replyMarkup: KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn);
+        }
     }
 }

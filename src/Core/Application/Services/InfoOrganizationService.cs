@@ -25,10 +25,12 @@ public class InfoOrganizationService(IRequesterApi requesterApi, ICache cacheRed
                 var dataResponce = await responce.Content.ReadAsStringAsync();
                 var infoOrg = JsonConvert
                     .DeserializeObject<List<Models.InfoOrganization>>(dataResponce);
+                
                 result = infoOrg.ToDto();
-
-                //пишем в кэш
-                await cacheRedis.SetInfoOrganization(infoOrg[0], result, ct);
+                
+                //если список непустой, то пишем в кэш  
+                if(infoOrg.Any())
+                    await cacheRedis.SetInfoOrganization(infoOrg[0], result, ct);
             }
             else if (responce.StatusCode == System.Net.HttpStatusCode.BadRequest)
             {
