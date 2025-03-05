@@ -22,5 +22,6 @@ public class AppDbContext(IConfiguration configuration) : DbContext
         modelBuilder.ConfigureDepartment();
         modelBuilder.ConfigureEmployee();
         modelBuilder.ConfigurePeriodicityForm();
+        modelBuilder.ConfigureEmployeeForm();
     }
 }

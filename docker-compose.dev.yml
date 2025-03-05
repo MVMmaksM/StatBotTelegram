@@ -17,8 +17,7 @@ services:
       - db_data:/var/lib/postgresql/data
     container_name: db_postgresql_statbot_telegram 
   redis:
-    image: redis:latest
-    restart: always
+    image: redis:latest   
     ports:
       - "6379:6379"
     volumes:

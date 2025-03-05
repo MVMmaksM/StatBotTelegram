@@ -35,14 +35,16 @@ public static class KeyboradButtonMenu
         {
             //По ОКУД формы
             new KeyboardButton(NameButton.BY_OKUD),
-            //По ФИО
-            new KeyboardButton(NameButton.BY_FIO)
+            //По индексу формы
+            new KeyboardButton(NameButton.BY_INDEX_FORM),
         },
         //вторая строка кнопок
         new KeyboardButton[]
         {
             //По номеру телефона специалиста
-            new KeyboardButton(NameButton.BY_PHONE_EMPLOYEE)
+            new KeyboardButton(NameButton.BY_PHONE_EMPLOYEE),
+            //По ФИО
+            new KeyboardButton(NameButton.BY_FIO)
         },
         //третья строка кнопок
         new KeyboardButton[]
