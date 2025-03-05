@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Persisitence.Database;
+using Persistence.Database;
 
 #nullable disable
 
-namespace Persisitence.Migrations
+namespace Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20250304110025_InitialCreate")]

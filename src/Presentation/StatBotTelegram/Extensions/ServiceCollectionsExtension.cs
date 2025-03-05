@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Application.Models;
+using Application.Models.SearchEmployees;
 using Application.Services;
 using FluentValidation;
 using StatBotTelegram.Components;
@@ -7,7 +8,7 @@ using StatBotTelegram.Controllers;
 using Telegram.Bot;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Persisitence.Database;
+using Persistence.Database;
 
 namespace StatBotTelegram.Extensions;
 
@@ -24,12 +25,13 @@ public static class ServiceCollectionsExtension
         builder.Services.AddTransient<InfoOrganizationController>();
         builder.Services.AddTransient<ListFormController>();
         
-        builder.Services.AddTransient<IInfoOrganizationService, InfoOrganizationService>();
+        builder.Services.AddTransient<IInfoOrganization, InfoOrganizationService>();
         builder.Services.AddTransient<IListForm, ListFormService>();
+        builder.Services.AddTransient<ISearchEmployees, SearchEmployeesService>();
    
-        builder.Services.AddSingleton<ICache, CacheRedis>();
+        builder.Services.AddSingleton<ICache, CacheRedisService>();
         
-        builder.Services.AddHttpClient<IRequesterApi, RequesterApi>(clientConfigure =>
+        builder.Services.AddHttpClient<IRequesterApi, RequesterApiService>(clientConfigure =>
         {
             clientConfigure.BaseAddress = new Uri(builder.Configuration.GetSection("BaseAddressWebsbor")?.Value);
         });
@@ -44,8 +46,9 @@ public static class ServiceCollectionsExtension
             };
         });
 
-        builder.Services.AddDbContext<AppDbContext>();
+        builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Singleton);
         builder.Services.AddValidatorsFromAssemblyContaining<RequestInfoForm>(ServiceLifetime.Transient);
+        //builder.Services.AddValidatorsFromAssemblyContaining<RequestSearchEmployees>(ServiceLifetime.Transient);
         builder.Services.AddHostedService<TelegramBot>();
         
         return builder;

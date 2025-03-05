@@ -45,28 +45,28 @@ public class ListFormController(
         {
             //По ОКПО
             case NameButton.BY_OKPO:
-                textMessage = TextMessage.SearchOkpo;
+                textMessage = TextMessage.SEARCH_OKPO;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOkpo, cancellationToken);
                 break;
             //По ИНН
             case NameButton.BY_INN:
-                textMessage = TextMessage.SearchInn;
+                textMessage = TextMessage.SEACRH_INN;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchInn, cancellationToken);
                 break;
             //По ОГРН/ОГРНИП
             case NameButton.BY_OGRN:
-                textMessage = TextMessage.SearchOgrnOgrnip;
+                textMessage = TextMessage.SEARXH_OGRN;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOgrnOgrnip, cancellationToken);
                 break;
             //Назад
             case NameButton.BACK:
-                textMessage = TextMessage.SelectCommand;
+                textMessage = TextMessage.SELECT_COMMAND;
                 buttonMenu = KeyboradButtonMenu.ButtonsInfoCodesAndListForm;
                 //меняем состояние меню
                 await cache.SetStateMenu(message.Chat.Id, MenuItems.InfoMainMenu, cancellationToken);
@@ -75,7 +75,7 @@ public class ListFormController(
                 break;
             default:
                 //по умолчанию кнопки меню
-                textMessage = TextMessage.UnknownCommand;
+                textMessage = TextMessage.UNKNOWN_COMMAND;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //скидываем состояние выбранной операции
                 await cache.RemoveOperationCode(message.Chat.Id, cancellationToken);

@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Application.Services;
 
-public class CacheRedis(IDistributedCache cacheRedis) : ICache
+public class CacheRedisService(IDistributedCache cacheRedis) : ICache
 {
     /// <summary>
     /// скидываем операцию пользователя
@@ -110,7 +110,7 @@ public class CacheRedis(IDistributedCache cacheRedis) : ICache
         return result;
     }
 
-    public async Task SetInfoOrganization(InfoOrganization organization, string info, CancellationToken cancellationToken)
+    public async Task SetInfoOrganization(Models.InfoOrganization organization, string info, CancellationToken cancellationToken)
     {
         var keys = new List<string>()
         {

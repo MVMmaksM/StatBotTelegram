@@ -1,9 +1,9 @@
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Persisitence.Database.ConfigureExtensions;
+using Persistence.Database.ConfigureExtensions;
 
-namespace Persisitence.Database;
+namespace Persistence.Database;
 
 public class AppDbContext(IConfiguration configuration) : DbContext
 {

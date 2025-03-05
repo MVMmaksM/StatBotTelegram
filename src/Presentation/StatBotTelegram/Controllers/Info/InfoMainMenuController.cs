@@ -19,27 +19,27 @@ public class InfoMainMenuController(ITelegramBotClient botClient, ICache cache)
         {
             //Получить данные о кодах статистики организации
             case NameButton.GET_INFO_ORGANIZATION:
-                textMessage = TextMessage.SelectCommand;
+                textMessage = TextMessage.SELECT_COMMAND;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
-                //устанавливаем сосотояние
+                //устанавливаем состояние
                 await cache.SetStateMenu(message.Chat.Id, MenuItems.GetInfoOrganization, cancellationToken);
                 break;
             //Получить перечень форм
             case NameButton.GET_LIST_FORMS:
-                textMessage = TextMessage.SelectCommand;
+                textMessage = TextMessage.SELECT_COMMAND;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
                 //устанавливаем сосотояние
                 await cache.SetStateMenu(message.Chat.Id, MenuItems.GetListForm, cancellationToken);
                 break;
             //Назад
             case NameButton.BACK:
-                textMessage = TextMessage.SelectCommand;
+                textMessage = TextMessage.SELECT_COMMAND;
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 //устанавливаем сосотояние
                 await cache.SetStateMenu(message.Chat.Id, MenuItems.MainMenu, cancellationToken);
                 break;
             default:
-                textMessage = TextMessage.UnknownCommand;
+                textMessage = TextMessage.UNKNOWN_COMMAND;
                 buttonMenu = KeyboradButtonMenu.ButtonsInfoCodesAndListForm;
                 //сбрасываем состояние команды
                 await cache.RemoveOperationCode(message.Chat.Id, cancellationToken);

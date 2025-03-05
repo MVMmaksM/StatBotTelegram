@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Persisitence.Database;
+using Persistence.Database;
 
 #nullable disable
 
@@ -67,8 +67,10 @@ namespace StatBotTelegram.Migrations
                         .HasColumnType("character varying(128)")
                         .HasColumnName("lastname");
 
-                    b.Property<long>("Phone")
-                        .HasColumnType("bigint")
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
                         .HasColumnName("phone");
 
                     b.Property<string>("SurName")
@@ -82,7 +84,6 @@ namespace StatBotTelegram.Migrations
                     b.HasIndex("DepartmentId");
 
                     b.HasIndex("Phone")
-                        .IsUnique()
                         .HasDatabaseName("inx_phone_employees");
 
                     b.ToTable("employees", (string)null);

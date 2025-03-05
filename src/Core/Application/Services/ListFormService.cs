@@ -16,7 +16,7 @@ public class ListFormService(IRequesterApi requesterApi) : IListForm
         {
             var dataResponce = await responce.Content.ReadAsStringAsync();
             var organizations = JsonConvert
-                .DeserializeObject<List<InfoOrganization>>(dataResponce);
+                .DeserializeObject<List<Models.InfoOrganization>>(dataResponce);
 
             if (organizations.Count != 0)
             {

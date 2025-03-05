@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Persisitence.Database.ConfigureExtensions;
+namespace Persistence.Database.ConfigureExtensions;
 
 public static class ConfigureExtensions
 {
@@ -117,11 +117,13 @@ public static class ConfigureExtensions
         modelBuilder
             .Entity<Employee>()
             .Property(e => e.Phone)
-            .HasColumnName("phone");
+            .HasColumnName("phone")
+            .HasMaxLength(11);
         modelBuilder
             .Entity<Employee>()
             .Property(e => e.DepartmentId)
-            .HasColumnName("department_id");
+            .HasColumnName("department_id")
+            .HasDefaultValue(null);
         
         modelBuilder
             .Entity<Employee>()
@@ -130,7 +132,6 @@ public static class ConfigureExtensions
         modelBuilder
             .Entity<Employee>()
             .HasIndex(d => d.Phone)
-            .IsUnique()
             .HasDatabaseName("inx_phone_employees");
         
         modelBuilder

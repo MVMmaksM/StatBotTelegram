@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace Application.Services;
 
-public class RequesterApi(HttpClient httpClient) : IRequesterApi
+public class RequesterApiService(HttpClient httpClient) : IRequesterApi
 {
     public async Task<HttpResponseMessage> PostAsync<T>(string requestUri, T body, CancellationToken cancellationToken)
     {

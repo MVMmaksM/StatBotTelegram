@@ -11,8 +11,8 @@ using Persistence.Database;
 namespace StatBotTelegram.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250304113605_updateDep")]
-    partial class updateDep
+    [Migration("20250305134304_fixEmployee")]
+    partial class fixEmployee
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,12 +35,9 @@ namespace StatBotTelegram.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
                         .HasColumnName("name");
-
-                    b.Property<string>("Test")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.HasKey("Id")
                         .HasName("pk_id_departments");
@@ -58,24 +55,30 @@ namespace StatBotTelegram.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("DepartmentId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("department_id");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
                         .HasColumnName("firstname");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
                         .HasColumnName("lastname");
 
-                    b.Property<long>("Phone")
-                        .HasColumnType("bigint")
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
                         .HasColumnName("phone");
 
                     b.Property<string>("SurName")
-                        .HasColumnType("text")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
                         .HasColumnName("surname");
 
                     b.HasKey("Id")
@@ -84,7 +87,6 @@ namespace StatBotTelegram.Migrations
                     b.HasIndex("DepartmentId");
 
                     b.HasIndex("Phone")
-                        .IsUnique()
                         .HasDatabaseName("inx_phone_employees");
 
                     b.ToTable("employees", (string)null);
@@ -101,7 +103,8 @@ namespace StatBotTelegram.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
                         .HasColumnName("name");
 
                     b.Property<int>("Okud")
@@ -109,7 +112,8 @@ namespace StatBotTelegram.Migrations
                         .HasColumnName("okud");
 
                     b.Property<int>("PeriodicityFormId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("periodicity_form_id");
 
                     b.HasKey("Id")
                         .HasName("pk_id_forms");
@@ -134,7 +138,8 @@ namespace StatBotTelegram.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
                         .HasColumnName("name");
 
                     b.HasKey("Id")
@@ -155,16 +160,17 @@ namespace StatBotTelegram.Migrations
 
                     b.HasIndex("FormsId");
 
-                    b.ToTable("EmployeeForm");
+                    b.ToTable("employees_forms", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Employee", b =>
                 {
                     b.HasOne("Domain.Entities.Department", "Department")
-                        .WithMany()
+                        .WithMany("Employees")
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_departments");
 
                     b.Navigation("Department");
                 });
@@ -172,10 +178,11 @@ namespace StatBotTelegram.Migrations
             modelBuilder.Entity("Domain.Entities.Form", b =>
                 {
                     b.HasOne("Domain.Entities.PeriodicityForm", "PeriodicityForm")
-                        .WithMany()
+                        .WithMany("Forms")
                         .HasForeignKey("PeriodicityFormId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_periodicity_forms");
 
                     b.Navigation("PeriodicityForm");
                 });
@@ -193,6 +200,16 @@ namespace StatBotTelegram.Migrations
                         .HasForeignKey("FormsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.Department", b =>
+                {
+                    b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("Domain.Entities.PeriodicityForm", b =>
+                {
+                    b.Navigation("Forms");
                 });
 #pragma warning restore 612, 618
         }

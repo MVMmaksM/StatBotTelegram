@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Application.Services;
 
-public class InfoOrganizationService(IRequesterApi requesterApi, ICache cacheRedis) : IInfoOrganizationService
+public class InfoOrganizationService(IRequesterApi requesterApi, ICache cacheRedis) : IInfoOrganization
 {
     public async Task<string> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken ct)
     {
@@ -24,7 +24,7 @@ public class InfoOrganizationService(IRequesterApi requesterApi, ICache cacheRed
             {
                 var dataResponce = await responce.Content.ReadAsStringAsync();
                 var infoOrg = JsonConvert
-                    .DeserializeObject<List<InfoOrganization>>(dataResponce);
+                    .DeserializeObject<List<Models.InfoOrganization>>(dataResponce);
                 result = infoOrg.ToDto();
 
                 //пишем в кэш

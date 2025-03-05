@@ -2,7 +2,7 @@ using Application.Models;
 
 namespace Application.Interfaces;
 
-public interface IInfoOrganizationService
+public interface IInfoOrganization
 {
     Task<string> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken cancellationToken);
 }

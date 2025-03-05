@@ -1,4 +1,3 @@
-using Persisitence.Database;
 using StatBotTelegram.Extensions;
 
 namespace StatBotTelegram;

@@ -1,5 +1,9 @@
 using Application.Constants;
+using Application.Extensions;
 using Application.Interfaces;
+using Application.Models.SearchEmployees;
+using FluentValidation;
+using FluentValidation.Results;
 using StatBotTelegram.Components;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -8,14 +12,19 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace StatBotTelegram.Controllers;
 
-public class SearchEmployeesController(ITelegramBotClient botClient, ICache cache)
+public class SearchEmployeesController
+    (
+        ITelegramBotClient botClient, 
+        ICache cache,
+        IValidator<RequestSearchEmployees> validatorRequestSearchEmployees,
+        ISearchEmployees searchEmployeesService)
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
         var state = await cache.GetUserState(message.Chat.Id, cancellationToken);
         if (state.OperationItem is not null && 
             (message.Text != NameButton.BACK && message.Text != NameButton.BY_OKUD && message.Text != NameButton.BY_FIO && 
-             message.Text != NameButton.BY_PHONE_EMPLOYEE))
+             message.Text != NameButton.BY_PHONE_EMPLOYEE && message.Text != NameButton.BY_INDEX_FORM))
         {
             await HandleOperation(message, cancellationToken);
         }
@@ -28,17 +37,53 @@ public class SearchEmployeesController(ITelegramBotClient botClient, ICache cach
     {
         var operationState = await cache.GetUserState(message.Chat.Id, cancellationToken);
         
+        var textMessage = string.Empty;
+        RequestSearchEmployees request = null;
+        ValidationResult validationResult = null;
+        
         switch (operationState.OperationItem)
         {
+            //по ОКУД
             case OperationCode.SearchOkud:
-                //ответ
-                await botClient.SendMessage(chatId: message.Chat.Id, 
-                    protectContent: true, replyParameters: message.Id,
-                    text: $"Введенный окуд неверный",
-                    parseMode: ParseMode.Html, cancellationToken: cancellationToken,
-                    replyMarkup: KeyboradButtonMenu.ButtonsSearchEmployeesMenu);
+                request = new RequestSearchEmployees
+                {
+                    Okud = message.Text.Trim()
+                };
+                break;
+            //По ФИО
+            case OperationCode.SearchFio:
+                request = new RequestSearchEmployees
+                {
+                    FioEmployee = message.Text.Trim()
+                };
+                break;
+            //По номеру телефона специалиста
+            case OperationCode.SearchPhoneEmployee:
+                request = new RequestSearchEmployees
+                {
+                    PhoneEmployee = message.Text.Trim()
+                };
+                break;
+            //По индексу формы
+            case OperationCode.SearchIndexForm:
+                request = new RequestSearchEmployees
+                {
+                    IndexForm = message.Text.Trim()
+                };
                 break;
         }
+        
+        validationResult = await validatorRequestSearchEmployees.ValidateAsync(request, cancellationToken);
+        var result = !validationResult.IsValid ? 
+            validationResult.Errors.ToDto() : 
+            await searchEmployeesService.GetEmployees(request, cancellationToken);
+        
+        //ответ
+        await botClient.SendMessage(chatId: message.Chat.Id, 
+            protectContent: true, replyParameters: message.Id,
+            text: result,
+            parseMode: ParseMode.Html, cancellationToken: cancellationToken,
+            replyMarkup: KeyboradButtonMenu.ButtonsSearchEmployeesMenu);
     }
     private async Task HandleButton(Message message, CancellationToken cancellationToken)
     {
@@ -49,28 +94,35 @@ public class SearchEmployeesController(ITelegramBotClient botClient, ICache cach
         {
             //По ОКУД формы
             case NameButton.BY_OKUD:
-                textMessage = TextMessage.SearchOkud;
+                textMessage = TextMessage.SEARCH_OKUD;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOkud, cancellationToken);
                 break;
             //По фамилии специалиста
             case NameButton.BY_FIO:
-                textMessage = TextMessage.SearchFioEmployee;
+                textMessage = TextMessage.SEARCH_FIO_EMPLOYEE;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchFio, cancellationToken);
                 break;
             //По номеру телефона специалиста
             case NameButton.BY_PHONE_EMPLOYEE:
-                textMessage = TextMessage.SearchPhoneEmployee;
+                textMessage = TextMessage.SEARCH_PHONE_EMPLOYEE;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 //устанавливаем состояние выбранной команды
-                await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchPhone, cancellationToken);
+                await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchPhoneEmployee, cancellationToken);
+                break;
+            //По индексу формы
+            case NameButton.BY_INDEX_FORM:
+                textMessage = TextMessage.SEACRH_INDEX_FORM;
+                buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
+                //устанавливаем состояние выбранной команды
+                await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchIndexForm, cancellationToken);
                 break;
             //Назад
             case NameButton.BACK:
-                textMessage = TextMessage.SelectCommand;
+                textMessage = TextMessage.SELECT_COMMAND;
                 buttonMenu = KeyboradButtonMenu.ButtonsMainMenu;
                 //меняем состояние меню
                 await cache.SetStateMenu(message.Chat.Id, MenuItems.MainMenu, cancellationToken);
@@ -78,7 +130,7 @@ public class SearchEmployeesController(ITelegramBotClient botClient, ICache cach
                 await cache.RemoveOperationCode(message.Chat.Id, cancellationToken);
                 break;
             default:
-                textMessage = TextMessage.UnknownCommand;
+                textMessage = TextMessage.UNKNOWN_COMMAND;
                 buttonMenu = KeyboradButtonMenu.ButtonsSearchEmployeesMenu;
                 break;
         }
