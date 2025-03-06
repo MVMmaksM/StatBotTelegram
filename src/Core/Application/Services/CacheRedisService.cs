@@ -28,14 +28,15 @@ public class CacheRedisService(IDistributedCache cacheRedis) : ICache
     /// <param name="chatId"></param>
     /// <param name="operationCode"></param>
     /// <returns></returns>
-    public async Task<UserState> SetOperationCode(long chatId, OperationCode operationCode, CancellationToken cancellationToken)
+    public async Task<UserState> SetOperationCode(long chatId, OperationCode operationCode,
+        CancellationToken cancellationToken)
     {
         var key = string.Concat("userState_", chatId);
         var userStateStr = await cacheRedis.GetStringAsync(key, cancellationToken);
         var userState = JsonConvert.DeserializeObject<UserState>(userStateStr);
         userState.OperationItem = operationCode;
         await cacheRedis.SetStringAsync(key, JsonConvert.SerializeObject(userState), cancellationToken);
-        
+
         return userState;
     }
 
@@ -49,7 +50,7 @@ public class CacheRedisService(IDistributedCache cacheRedis) : ICache
         var key = string.Concat("userState_", chatId);
         var userStateStr = await cacheRedis.GetStringAsync(key, cancellationToken);
 
-       return userStateStr != null ? JsonConvert.DeserializeObject<UserState>(userStateStr) : null;
+        return userStateStr != null ? JsonConvert.DeserializeObject<UserState>(userStateStr) : null;
     }
 
     /// <summary>
@@ -82,55 +83,83 @@ public class CacheRedisService(IDistributedCache cacheRedis) : ICache
 
             await cacheRedis.SetStringAsync(key, JsonConvert.SerializeObject(userState), cancellationToken);
         }
-        
+
         return userState;
     }
-    public async Task<string> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken cancellationToken)
+
+    public async Task<List<InfoOrganization>> GetInfoOrganization(RequestInfoForm requestInfo,
+        CancellationToken cancellationToken)
     {
-        var result = string.Empty;
-        
-        if (requestInfo.Okpo != String.Empty)
+        List<InfoOrganization> organizations = null;
+
+        if (requestInfo.Okpo != string.Empty)
         {
             var key = string.Concat("infoOkpo_", requestInfo.Okpo);
-            result = await cacheRedis.GetStringAsync(key, cancellationToken);
+            var infoOkpoStr = await cacheRedis.GetStringAsync(key, cancellationToken);
+            if (infoOkpoStr != null)
+            {
+                var infoOkpo = JsonConvert.DeserializeObject<InfoOrganization>(infoOkpoStr);
+                organizations = new List<InfoOrganization>();
+                organizations.Add(infoOkpo);
+            }
         }
 
         if (requestInfo.Ogrn != string.Empty)
         {
             var key = string.Concat("infoOgrn_", requestInfo.Ogrn);
-            result = await cacheRedis.GetStringAsync(key, cancellationToken);
+            var infoOgrnStr = await cacheRedis.GetStringAsync(key, cancellationToken);
+            if(infoOgrnStr != null)
+                organizations = new List<InfoOrganization>(JsonConvert.DeserializeObject<List<InfoOrganization>>(infoOgrnStr));
         }
-        
+
         if (requestInfo.Inn != string.Empty)
         {
             var key = string.Concat("infoInn_", requestInfo.Inn);
-            result = await cacheRedis.GetStringAsync(key, cancellationToken);
+            var infoInnStr = await cacheRedis.GetStringAsync(key, cancellationToken);
+            if(infoInnStr != null)
+                organizations = new List<InfoOrganization>(JsonConvert.DeserializeObject<List<InfoOrganization>>(infoInnStr));
         }
-        
-        return result;
+
+        return organizations;
     }
 
-    public async Task SetInfoOrganization(Models.InfoOrganization organization, string info, CancellationToken cancellationToken)
+    public async Task SetInfoOrganization(List<InfoOrganization> organizations, RequestInfoForm requestInfo,
+        CancellationToken cancellationToken)
     {
-        var keys = new List<string>()
-        {
-            string.Concat("infoOkpo_", organization.Okpo),
-            string.Concat("infoOgrn_", organization.Ogrn),
-            string.Concat("infoInn_", organization.Inn)
-        };
-
         var cacheOptions = new DistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
         };
 
-        foreach (var key in keys)
+        //если приходит запрос по ИНН или ОГРН
+        //то сохраняем по ИНН и ОГРН список
+        //и отдельно для каждого ОКПО
+        if (requestInfo.Ogrn != string.Empty || requestInfo.Inn != string.Empty)
         {
-            var infoStr = await cacheRedis.GetStringAsync(key, cancellationToken);
+            var keyInn = $"infoInn_{organizations[0].Inn}";
+            var keyOgrn = $"infoOgrn_{organizations[0].Ogrn}";
 
-            if (infoStr == null)
+            var organizationsStr = JsonConvert.SerializeObject(organizations);
+            await cacheRedis.SetStringAsync(keyInn, organizationsStr, cacheOptions, cancellationToken);
+            await cacheRedis.SetStringAsync(keyOgrn, organizationsStr, cacheOptions, cancellationToken);
+
+            foreach (var org in organizations)
             {
-                await cacheRedis.SetStringAsync(key, info, cacheOptions, cancellationToken);
+                var keyOkpo = $"infoOkpo_{org.Okpo}";
+                var orgStr = JsonConvert.SerializeObject(org);
+                await cacheRedis.SetStringAsync(keyOkpo, orgStr, cacheOptions, cancellationToken);
+            }
+        }
+
+        //если приходит ОКПО
+        //т осохраняем только по ОКПО
+        if (requestInfo.Okpo != string.Empty)
+        {
+            foreach (var org in organizations)
+            {
+                var keyOkpo = $"infoOkpo_{org.Okpo}";
+                var orgStr = JsonConvert.SerializeObject(org);
+                await cacheRedis.SetStringAsync(keyOkpo, orgStr, cacheOptions, cancellationToken);
             }
         }
     }

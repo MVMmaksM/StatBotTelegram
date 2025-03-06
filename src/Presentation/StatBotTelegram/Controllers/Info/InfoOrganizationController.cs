@@ -24,7 +24,8 @@ public class InfoOrganizationController(
     {
         var state = await cache.GetUserState(message.Chat.Id, cancellationToken);
         if (state.OperationItem is not null &&
-            (message.Text != NameButton.BACK && message.Text != NameButton.BY_OKPO && message.Text != NameButton.BY_INN &&
+            (message.Text != NameButton.BACK && message.Text != NameButton.BY_OKPO &&
+             message.Text != NameButton.BY_INN &&
              message.Text != NameButton.BY_OGRN))
         {
             await HandleOperation(message, cancellationToken);
@@ -39,7 +40,7 @@ public class InfoOrganizationController(
     {
         var textMessage = string.Empty;
         KeyboardButton[][] buttonMenu = null;
-        
+
         //в зависимости от выбранной кнопки
         //устанавливаем кнопки, сообщение и состояние
         switch (message.Text)
@@ -82,7 +83,7 @@ public class InfoOrganizationController(
                 await cache.RemoveOperationCode(message.Chat.Id, cancellationToken);
                 break;
         }
-        
+
         //отправляем ответ
         await botClient.SendMessage(chatId: message.Chat.Id,
             protectContent: true, replyParameters: message.Id,
@@ -96,6 +97,8 @@ public class InfoOrganizationController(
         var operationState = await cache.GetUserState(message.Chat.Id, cancellationToken);
         var filter = new RequestInfoForm();
         ValidationResult validationResult = null;
+        var result = string.Empty;
+        InlineKeyboardButton[][] inlineButtons = null;
         //в зависимости от выбранной операции 
         //составляем фильтр
         switch (operationState.OperationItem)
@@ -119,21 +122,46 @@ public class InfoOrganizationController(
                 validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
                 break;
         }
-        
-        var result = !validationResult.IsValid ? 
-            validationResult.Errors.ToDto() : 
-            await infoOrganization.GetInfoOrganization(filter, cancellationToken);
-        
+
+        try
+        {
+            if (!validationResult.IsValid)
+            {
+                result = validationResult.Errors.ToDto();
+            }
+            else
+            {
+                List<InfoOrganization> infoOrg = null;
+                (result, infoOrg) = await infoOrganization.GetInfoOrganization(filter, cancellationToken);
+
+                if (infoOrg.Count() > 1)
+                {
+                    inlineButtons = CreateInlineKeyboardButtonInfoOrg.Create(infoOrg);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            result = "Произошла внутренняя ошибка!";
+        }
+
+        //делим сообщение на части, чтобы не превысить размер сообщения
         var splitMessages = SplitterMessage.SplitMessage(result);
 
-        foreach (var messagePart in splitMessages)
+        for (int i = 0; i < splitMessages.Count(); i++)
         {
             //ответ
             await botClient.SendMessage(chatId: message.Chat.Id,
                 protectContent: false, replyParameters: message.Id,
-                text: messagePart ,
+                text: splitMessages[i],
                 parseMode: ParseMode.Html, cancellationToken: cancellationToken,
-                replyMarkup: KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn);
+                //если есть инлайнкнопки и сообщение последнее
+                //то показываем эти кнопки
+                //иначе показываем дефолтные менюшные кнопки
+                replyMarkup: inlineButtons is not null && i == splitMessages.Count() - 1
+                    ? inlineButtons
+                    : KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn);
         }
     }
 }

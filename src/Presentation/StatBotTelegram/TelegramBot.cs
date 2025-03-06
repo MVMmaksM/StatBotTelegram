@@ -6,37 +6,48 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace StatBotTelegram;
 
-public class TelegramBot(ITelegramBotClient telegramBotClient, 
+public class TelegramBot(
+    ITelegramBotClient telegramBotClient,
     MainMenuController mainMenuController,
     SearchEmployeesController searchEmployeesController,
     InfoMainMenuController infoMainMenuController,
     InfoOrganizationController infoOrganizationController,
     ListFormController listFormController,
+    InfoInlineKeyboardController infoInlineKeyboardController,
     ICache cache) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await telegramBotClient.ReceiveAsync(
-            errorHandler: HandleErrorAsync, 
-            cancellationToken: stoppingToken, 
-            receiverOptions: new ReceiverOptions() {AllowedUpdates = {}}, 
-            updateHandler:HandleUpdateAsync);
+            errorHandler: HandleErrorAsync,
+            cancellationToken: stoppingToken,
+            receiverOptions: new ReceiverOptions() { AllowedUpdates = { } },
+            updateHandler: HandleUpdateAsync);
     }
 
-    async Task HandleUpdateAsync(ITelegramBotClient botClient,Update update, CancellationToken cancellationToken)
+    async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
+        if (update.Type == UpdateType.CallbackQuery)
+        {
+            if (update.CallbackQuery.Data.StartsWith("getInfoOrg_"))
+            {
+                await infoInlineKeyboardController.Handle(update, cancellationToken);
+            }
+        }
+
         if (update.Type == UpdateType.Message)
         {
             var state = await cache.GetUserState(update.Message.Chat.Id, cancellationToken);
             if (state is null || state.MenuItem == MenuItems.MainMenu || update.Message.Text == "/start")
             {
                 await mainMenuController.Handle(update.Message, cancellationToken);
-                return; 
+                return;
             }
-                
+
             switch (state.MenuItem)
             {
                 //если в меню поиска сотрудников
@@ -74,4 +85,3 @@ public class TelegramBot(ITelegramBotClient telegramBotClient,
         return Task.CompletedTask;
     }
 }
-

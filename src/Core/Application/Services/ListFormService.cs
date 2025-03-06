@@ -10,30 +10,30 @@ public class ListFormService(IRequesterApi requesterApi) : IListForm
     public async Task<string> GetListForm(RequestInfoForm requestInfo, CancellationToken cancellationToken)
     {
         string result = String.Empty;
-        var responce = await requesterApi.PostAsync<RequestInfoForm>("/webstat/api/gs/organizations", requestInfo, cancellationToken);
+        List<InfoOrganization> infoOrg = null;
+        var responce = await requesterApi.PostAsync<RequestInfoForm, List<InfoOrganization>, string>
+            ("/webstat/api/gs/organizations", requestInfo, cancellationToken);
         
-        if (responce.IsSuccessStatusCode)
-        {
-            var dataResponce = await responce.Content.ReadAsStringAsync();
-            var organizations = JsonConvert
-                .DeserializeObject<List<Models.InfoOrganization>>(dataResponce);
+        if(responce.Error != null)
+            return responce.Error;
 
-            if (organizations.Count != 0)
-            {
-                var organizationId = organizations[0].Id;
-                result = await GetForms(organizationId, cancellationToken);
-            }
-        }
-        else if (responce.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        if (responce.Content != null)
+            infoOrg = responce.Content;
+        
+        if (!infoOrg.Any())
         {
-            var dataResponce = await responce.Content.ReadAsStringAsync();
-            result = JsonConvert
-                .DeserializeObject<ErrorInfoOrganization>(dataResponce)
-                .ToDto();
+            result = "По Вашему запросу организации не найдены!";
         }
-        else
+        else if(infoOrg.Count == 1)
         {
-            result = "Сервис получения данных временно недоступен!";
+            result = await GetForms(infoOrg[0].Id, cancellationToken);
+        }
+        else if (infoOrg.Count > 1)
+        {
+            result = $"По Вашему запросу найдено организаций: {infoOrg.Count}\n" +
+                     $"Для того, чтобы получить переченб форм по конкретной организации, выберите критерий поиска" +
+                     $" \"По ОКПО\" и введите один ОКПО из списка ниже:\n\n";
+            result += infoOrg.ToShortDto();
         }
         
         return result;
@@ -42,20 +42,15 @@ public class ListFormService(IRequesterApi requesterApi) : IListForm
     private async Task<string> GetForms(string organizationId, CancellationToken cancellationToken)
     {
         var result = string.Empty;
-        var responce = await requesterApi.GetAsync($"/webstat/api/gs//organizations/{organizationId}/forms", cancellationToken);
+        var responce = await requesterApi.GetAsync<List<Form>, string>
+            ($"/webstat/api/gs//organizations/{organizationId}/forms", cancellationToken);
 
-        if (responce.IsSuccessStatusCode)
-        {
-            var dataResponce = await responce.Content.ReadAsStringAsync();
-            result = JsonConvert
-                .DeserializeObject<List<Form>>(dataResponce)
-                .ToDto();
-        }
-        else
-        {
-            result = "Сервис получения данных временно недоступен!";
-        }
+        if(responce.Error != null)
+            return responce.Error;
         
-        return result;
+        if(responce.Content != null)
+            return responce.Content.ToDto();
+
+        return "Формы не найдены!";
     }
 }

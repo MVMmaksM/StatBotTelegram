@@ -9,6 +9,6 @@ public interface ICache
     Task<UserState> SetStateMenu(long chatId, MenuItems menuItem, CancellationToken cancellationToken);
     Task<UserState>  SetOperationCode(long chatId, OperationCode operationCode, CancellationToken cancellationToken);
     Task RemoveOperationCode(long chatId, CancellationToken cancellationToken);
-    Task<string> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken cancellationToken);
-    Task SetInfoOrganization(InfoOrganization organization, string info, CancellationToken cancellationToken);
+    Task<List<InfoOrganization>> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken cancellationToken);
+    Task SetInfoOrganization(List<InfoOrganization> organizations,RequestInfoForm requestInfo, CancellationToken cancellationToken);
 }

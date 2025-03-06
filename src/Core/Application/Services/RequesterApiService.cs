@@ -1,26 +1,80 @@
 using System.Net.Http.Headers;
 using Application.Interfaces;
+using Application.Models;
 using Newtonsoft.Json;
 
 namespace Application.Services;
 
 public class RequesterApiService(HttpClient httpClient) : IRequesterApi
 {
-    public async Task<HttpResponseMessage> PostAsync<T>(string requestUri, T body, CancellationToken cancellationToken)
+    public async Task<ResultRequest<TContent, TError>> PostAsync<TBody, TContent, TError>
+        (string requestUri, TBody body, CancellationToken cancellationToken)
     {
         var content = new StringContent(JsonConvert.SerializeObject(body));
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
         content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         request.Content = content;
-        return await httpClient.SendAsync(request, cancellationToken);
+        HttpResponseMessage responce = null;
+        
+        try
+        {
+            responce = await httpClient.SendAsync(request, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
+        }
+        
+        var result = new ResultRequest<TContent, TError>();
+
+        if (responce.IsSuccessStatusCode)
+        {
+            var dataResponce = await responce.Content.ReadAsStringAsync();
+            result.Content = JsonConvert
+                .DeserializeObject<TContent>(dataResponce);
+        }
+        else if (responce.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            var dataResponce = await responce.Content.ReadAsStringAsync();
+            result.Error = JsonConvert
+                .DeserializeObject<TError>(dataResponce);
+        }
+        
+        return result;
     }
 
-    public async Task<HttpResponseMessage> GetAsync(string requestUri, CancellationToken cancellationToken)
+    public async Task<ResultRequest<TContent, TError>> GetAsync<TContent, TError>(string requestUri, CancellationToken cancellationToken)
     {
         //var content = new StringContent(JsonConvert.SerializeObject(body));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         /*content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         request.Content = content;*/
-        return await httpClient.SendAsync(request, cancellationToken);
+        HttpResponseMessage responce = null;
+
+        try
+        {
+            responce = await httpClient.SendAsync(request, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
+        }
+        
+        var result = new ResultRequest<TContent, TError>();
+
+        if (responce.IsSuccessStatusCode)
+        {
+            var dataResponce = await responce.Content.ReadAsStringAsync();
+            result.Content = JsonConvert
+                .DeserializeObject<TContent>(dataResponce);
+        }
+        else if (responce.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            var dataResponce = await responce.Content.ReadAsStringAsync();
+            result.Error = JsonConvert
+                .DeserializeObject<TError>(dataResponce);
+        }
+        
+        return result;
     }
 }
