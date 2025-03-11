@@ -97,8 +97,7 @@ public class InfoOrganizationController(
         var operationState = await cache.GetUserState(message.Chat.Id, cancellationToken);
         var filter = new RequestInfoForm();
         ValidationResult validationResult = null;
-        var result = string.Empty;
-        InlineKeyboardButton[][] inlineButtons = null;
+        var textMessage = string.Empty;
         //в зависимости от выбранной операции 
         //составляем фильтр
         switch (operationState.OperationItem)
@@ -123,32 +122,9 @@ public class InfoOrganizationController(
                 break;
         }
 
-        try
-        {
-            if (!validationResult.IsValid)
-            {
-                result = validationResult.Errors.ToDto();
-            }
-            else
-            {
-                List<InfoOrganization> infoOrg = null;
-                (result, infoOrg) = await infoOrganization.GetInfoOrganization(filter, cancellationToken);
-
-                if (infoOrg.Count() > 1)
-                {
-                    inlineButtons = CreateInlineKeyboardButtonInfoOrg.Create(infoOrg);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            result = "Произошла внутренняя ошибка!";
-        }
-
-        //делим сообщение на части, чтобы не превысить размер сообщения
-        var splitMessages = SplitterMessage.SplitMessage(result);
-
+        //убираем всю логику в отдельный метод
+        var (splitMessages, inlineButtons) = await GenerateMessage(validationResult, filter, cancellationToken);
+        
         for (int i = 0; i < splitMessages.Count(); i++)
         {
             //ответ
@@ -163,5 +139,71 @@ public class InfoOrganizationController(
                     ? inlineButtons
                     : KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn);
         }
+    }
+
+    private async Task<(List<string>, InlineKeyboardButton[][])> GenerateMessage
+        (ValidationResult validationResult, RequestInfoForm filter, CancellationToken cancellationToken)
+    {
+        var textMessage = string.Empty;
+        InlineKeyboardButton[][] inlineButtons = null;
+
+        try
+        {
+            //если есть ошибки валидации
+            //то пишем в результат
+            if (!validationResult.IsValid)
+            {
+                textMessage = validationResult.Errors.ToDto();
+            }
+            //если ошибок валидации не было
+            else
+            {
+                //делаем запрос в сервис
+                var resultRequest = await infoOrganization.GetInfoOrganization(filter, cancellationToken);
+                //если не пришла ошибка
+                if (resultRequest.Error == null)
+                {
+                    var infoOrg = resultRequest.Content;
+
+                    //если пусто йсписко организаций пришел из сервиса
+                    //то пишем пользователю, что организаций не найдено
+                    if (infoOrg == null || infoOrg.Count() == 0)
+                        textMessage = "По Вашему запросу организации не найдены!";
+
+                    //если пришло больше одной организации
+                    //то пишем, что найдено много организаций
+                    if (infoOrg.Count() > 1)
+                    {
+                        textMessage = $"По Вашему запросу найдено организаций: {infoOrg.Count}\n" +
+                                      $"Для того, чтобы получить данные по конкретной организации, выберите ОКПО " +
+                                      $"из списка ниже:\n\n" + infoOrg.ToShortDto();
+
+                        //и формируем кнопки для каждой организации
+                        inlineButtons = CreateInlineKeyboardButtonInfoOrg.Create(resultRequest.Content);
+                    }
+
+                    //если всего одна организация найдена
+                    //то выдаем полную инфу по ней
+                    if (infoOrg.Count() == 1)
+                        textMessage = infoOrg.ToFullDto();
+                }
+                //если пришла ошибка
+                else
+                {
+                    //пишем ее в результат
+                    textMessage = resultRequest.Error.ToDto();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            textMessage = "Произошла внутренняя ошибка!";
+        }
+
+        //делим сообщение на части, чтобы не превысить размер сообщения
+        var splitMessages = SplitterMessage.SplitMessage(textMessage);
+
+        return (splitMessages, inlineButtons);
     }
 }

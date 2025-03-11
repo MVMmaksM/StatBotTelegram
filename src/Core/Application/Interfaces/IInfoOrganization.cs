@@ -4,5 +4,5 @@ namespace Application.Interfaces;
 
 public interface IInfoOrganization
 {
-    Task<(string, List<InfoOrganization>)> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken cancellationToken);
+    Task<ResultRequest<List<InfoOrganization>, ErrorInfoOrganization>> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken cancellationToken);
 }
