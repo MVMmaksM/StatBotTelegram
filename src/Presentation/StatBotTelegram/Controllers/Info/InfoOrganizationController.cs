@@ -179,7 +179,7 @@ public class InfoOrganizationController(
                                       $"из списка ниже:\n\n" + infoOrg.ToShortDto();
 
                         //и формируем кнопки для каждой организации
-                        inlineButtons = CreateInlineKeyboardButtonInfoOrg.Create(resultRequest.Content);
+                        inlineButtons = CreateInlineKeyboardButtonInfoOrg.Create(infoOrg);
                     }
 
                     //если всего одна организация найдена

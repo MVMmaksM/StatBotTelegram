@@ -11,20 +11,20 @@ namespace Application.Services;
 public class InfoOrganizationService(IRequesterApi requesterApi, ICache cacheRedis) : IInfoOrganization
 {
     public async Task<ResultRequest<List<InfoOrganization>, ErrorInfoOrganization>> GetInfoOrganization(
-        RequestInfoForm requestInfo,
+        RequestInfoForm request,
         CancellationToken ct)
     {
         //проверяем кэш
-        var cache = await cacheRedis.GetInfoOrganization(requestInfo, ct);
+        List<InfoOrganization> cache = await cacheRedis.GetInfoOrganization(request, ct);
 
         if (cache == null)
         {
             var responce =
                 await requesterApi.PostAsync<RequestInfoForm, List<InfoOrganization>, ErrorInfoOrganization>
-                    ("/webstat/api/gs/organizations", requestInfo, ct);
+                    ("/webstat/api/gs/organizations", request, ct);
 
-            if (responce.Content.Any())
-                await cacheRedis.SetInfoOrganization(responce.Content, requestInfo, ct);
+            if (responce.Content != null && responce.Content.Any())
+                await cacheRedis.SetInfoOrganization(responce.Content, request, ct);
 
             return responce;
         }

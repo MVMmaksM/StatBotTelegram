@@ -87,37 +87,22 @@ public class CacheRedisService(IDistributedCache cacheRedis) : ICache
         return userState;
     }
 
-    public async Task<List<InfoOrganization>> GetInfoOrganization(RequestInfoForm requestInfo,
+    public async Task<List<InfoOrganization>?> GetInfoOrganization(RequestInfoForm requestInfo,
         CancellationToken cancellationToken)
     {
-        List<InfoOrganization> organizations = null;
+        List<InfoOrganization>? organizations = null;
+        var key = string.Empty;
 
         if (requestInfo.Okpo != string.Empty)
-        {
-            var key = string.Concat("infoOkpo_", requestInfo.Okpo);
-            var infoOkpoStr = await cacheRedis.GetStringAsync(key, cancellationToken);
-            if (infoOkpoStr != null)
-            {
-                var infoOkpo = JsonConvert.DeserializeObject<InfoOrganization>(infoOkpoStr);
-                organizations = new List<InfoOrganization>();
-                organizations.Add(infoOkpo);
-            }
-        }
-
-        if (requestInfo.Ogrn != string.Empty)
-        {
-            var key = string.Concat("infoOgrn_", requestInfo.Ogrn);
-            var infoOgrnStr = await cacheRedis.GetStringAsync(key, cancellationToken);
-            if(infoOgrnStr != null)
-                organizations = new List<InfoOrganization>(JsonConvert.DeserializeObject<List<InfoOrganization>>(infoOgrnStr));
-        }
+            key = string.Concat("infoOkpo_", requestInfo.Okpo);
 
         if (requestInfo.Inn != string.Empty)
+            key = string.Concat("infoInn_", requestInfo.Inn);
+        
+        var dataCache = await cacheRedis.GetStringAsync(key, cancellationToken);
+        if (dataCache != null)
         {
-            var key = string.Concat("infoInn_", requestInfo.Inn);
-            var infoInnStr = await cacheRedis.GetStringAsync(key, cancellationToken);
-            if(infoInnStr != null)
-                organizations = new List<InfoOrganization>(JsonConvert.DeserializeObject<List<InfoOrganization>>(infoInnStr));
+            organizations = JsonConvert.DeserializeObject<List<InfoOrganization>>(dataCache);
         }
 
         return organizations;
@@ -130,37 +115,41 @@ public class CacheRedisService(IDistributedCache cacheRedis) : ICache
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
         };
-
-        //если приходит запрос по ИНН или ОГРН
-        //то сохраняем по ИНН и ОГРН список
-        //и отдельно для каждого ОКПО
-        if (requestInfo.Ogrn != string.Empty || requestInfo.Inn != string.Empty)
+        var serialize = JsonConvert.SerializeObject(organizations);
+        
+        if (requestInfo.Okpo != string.Empty)
         {
-            var keyInn = $"infoInn_{organizations[0].Inn}";
-            var keyOgrn = $"infoOgrn_{organizations[0].Ogrn}";
+            //сохраняем весь список с одним ключом
+            var key = string.Concat("infoOkpo_", requestInfo.Okpo);
+            await cacheRedis.SetStringAsync(key, serialize, cacheOptions, cancellationToken);
 
-            var organizationsStr = JsonConvert.SerializeObject(organizations);
-            await cacheRedis.SetStringAsync(keyInn, organizationsStr, cacheOptions, cancellationToken);
-            await cacheRedis.SetStringAsync(keyOgrn, organizationsStr, cacheOptions, cancellationToken);
-
-            foreach (var org in organizations)
+            //если в списке больше 1 организации
+            //значит введен ОКПО головного подразделения
+            if (organizations.Count() > 1)
             {
-                var keyOkpo = $"infoOkpo_{org.Okpo}";
-                var orgStr = JsonConvert.SerializeObject(org);
-                await cacheRedis.SetStringAsync(keyOkpo, orgStr, cacheOptions, cancellationToken);
+                //сохраняем каждую организацию со своим ключом
+                foreach (var infoOrg in organizations.Where(o => o.Okpo != requestInfo.Okpo))
+                {
+                    var listInfoOrg = new List<InfoOrganization>();
+                    listInfoOrg.Add(infoOrg);
+                    await cacheRedis.SetStringAsync(
+                        $"infoOkpo_{infoOrg.Okpo}",
+                        JsonConvert.SerializeObject(listInfoOrg), cacheOptions, cancellationToken);
+                }
+
+                //сохраняем весь спико под одним ключом 
+                //по ИНН, т.к. если в списке > 1 организации
+                //то это головное подразделение
+                //и у всех организаций одинаковый ИНН
+                var inn = organizations[0].Inn;
+                await cacheRedis.SetStringAsync($"infoInn_{inn}", serialize, cacheOptions, cancellationToken);
             }
         }
 
-        //если приходит ОКПО
-        //т осохраняем только по ОКПО
-        if (requestInfo.Okpo != string.Empty)
+        if (requestInfo.Inn != string.Empty && organizations.Count() > 1)
         {
-            foreach (var org in organizations)
-            {
-                var keyOkpo = $"infoOkpo_{org.Okpo}";
-                var orgStr = JsonConvert.SerializeObject(org);
-                await cacheRedis.SetStringAsync(keyOkpo, orgStr, cacheOptions, cancellationToken);
-            }
+            var inn = organizations[0].Inn;
+            await cacheRedis.SetStringAsync($"infoInn_{inn}", serialize, cacheOptions, cancellationToken);
         }
     }
 }

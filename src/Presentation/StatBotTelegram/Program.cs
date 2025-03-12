@@ -10,7 +10,7 @@ public class Program
         builder.AddAppServices();
 
         var host = builder.Build();
-        host.ExecuteMigrate();
+        //host.ExecuteMigrate();
         await host.RunAsync();
     }
 }
