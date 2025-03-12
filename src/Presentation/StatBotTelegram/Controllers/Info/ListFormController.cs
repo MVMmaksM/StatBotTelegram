@@ -125,9 +125,12 @@ public class ListFormController(
                 break;
         }
 
+        //TODO переписать логику получения форм
+        //нужно дернуть сервис получения инфы об организации
+        //затем дергать сервис получения форм
         var result = !validationResult.IsValid
             ? validationResult.Errors.ToDto()
-            : await listFormService.GetListForm(filter, cancellationToken);
+            : "test";//await listFormService.GetListForm(filter, cancellationToken);
 
         var splitMessages = SplitterMessage.SplitMessage(result);
 

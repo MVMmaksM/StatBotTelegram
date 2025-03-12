@@ -5,52 +5,28 @@ using Newtonsoft.Json;
 
 namespace Application.Services;
 
-public class ListFormService(IRequesterApi requesterApi) : IListForm
+public class ListFormService(IRequesterApi requesterApi, ICache cacheRedis) : IListForm
 {
-    public async Task<string> GetListForm(RequestInfoForm requestInfo, CancellationToken cancellationToken)
+    public async Task<ResultRequest<List<Form>, string>> GetFormsById(string orgId, CancellationToken cancellationToken)
     {
-        string result = String.Empty;
-        List<InfoOrganization> infoOrg = null;
-        var responce = await requesterApi.PostAsync<RequestInfoForm, List<InfoOrganization>, string>
-            ("/webstat/api/gs/organizations", requestInfo, cancellationToken);
-        
-        if(responce.Error != null)
-            return responce.Error;
+        //проверяем кэш
+        List<Form> cache = await cacheRedis.GetForms(orgId, cancellationToken);
 
-        if (responce.Content != null)
-            infoOrg = responce.Content;
-        
-        if (!infoOrg.Any())
+        if (cache == null)
         {
-            result = "По Вашему запросу организации не найдены!";
-        }
-        else if(infoOrg.Count == 1)
-        {
-            result = await GetForms(infoOrg[0].Id, cancellationToken);
-        }
-        else if (infoOrg.Count > 1)
-        {
-            result = $"По Вашему запросу найдено организаций: {infoOrg.Count}\n" +
-                     $"Для того, чтобы получить переченб форм по конкретной организации, выберите критерий поиска" +
-                     $" \"По ОКПО\" и введите один ОКПО из списка ниже:\n\n";
-            result += infoOrg.ToShortDto();
+            var responce =  await requesterApi.GetAsync<List<Form>, string>
+                ($"/webstat/api/gs//organizations/{orgId}/forms", cancellationToken);
+            
+            if (responce.Content != null && responce.Content.Any())
+                await cacheRedis.SetForms(orgId, responce.Content, cancellationToken);
+
+            return responce;
         }
         
-        return result;
-    }
-
-    private async Task<string> GetForms(string organizationId, CancellationToken cancellationToken)
-    {
-        var result = string.Empty;
-        var responce = await requesterApi.GetAsync<List<Form>, string>
-            ($"/webstat/api/gs//organizations/{organizationId}/forms", cancellationToken);
-
-        if(responce.Error != null)
-            return responce.Error;
-        
-        if(responce.Content != null)
-            return responce.Content.ToDto();
-
-        return "Формы не найдены!";
+        return new ResultRequest<List<Form>, string>()
+        {
+            Content = cache,
+            Error = null
+        };
     }
 }

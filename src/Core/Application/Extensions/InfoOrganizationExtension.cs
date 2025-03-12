@@ -36,25 +36,4 @@ public static class InfoOrganizationExtension
 
         return string.Join("\n", shortInfo);
     }
-
-    public static string ToOneDto(this InfoOrganization organization)
-    {
-        var fullInfo =
-            "<b>Данные о кодах статистики:</b>\n\n" +
-            $"Краткое наименование: {organization.ShortName}\n" +
-            $"ОКПО / Идентификационный номер ТОСП: {organization.Okpo}\n" +
-            $"ОГРН / ОГРНИП: {organization.Ogrn}\n" +
-            $"Дата регистрации: {organization.DateReg}\n" +
-            $"ИНН: {organization.Inn}\n" +
-            $"ОКАТО фактический: {organization.OkatoFact.Code} - {organization.OkatoFact.Name}\n" +
-            $"ОКАТО регистрации: {organization.OkatoReg.Code} - {organization.OkatoReg.Name}\n" +
-            $"ОКТМО фактический: {organization.OktmoFact.Code} - {organization.OktmoFact.Name}\n" +
-            $"ОКТМО регистрации: {organization.OktmoReg.Code} - {organization.OktmoReg.Name}\n" +
-            $"ОКОГУ: {organization.Okogu.Code} - {organization.Okogu.Name}\n" +
-            $"ОКФС: {organization.Okfs.Code} - {organization.Okfs.Name}\n" +
-            $"ОКОПФ: {organization.Okopf.Code} - {organization.Okopf.Name}\n";
-
-
-        return fullInfo;
-    }
 }

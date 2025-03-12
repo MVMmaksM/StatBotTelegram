@@ -152,4 +152,24 @@ public class CacheRedisService(IDistributedCache cacheRedis) : ICache
             await cacheRedis.SetStringAsync($"infoInn_{inn}", serialize, cacheOptions, cancellationToken);
         }
     }
+
+    public async Task<List<Form>?> GetForms(string orgId, CancellationToken cancellationToken)
+    {
+        List<Form> forms = null;
+        var cache = await cacheRedis.GetStringAsync($"listForms_{orgId}", cancellationToken);
+        if(cache != null)
+            forms = JsonConvert.DeserializeObject<List<Form>>(cache);
+        
+        return forms;
+    }
+
+    public async Task SetForms(string orgId, List<Form> forms, CancellationToken cancellationToken)
+    {
+        var cacheOptions = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+        };
+        
+        await cacheRedis.SetStringAsync($"listForms_{orgId}", JsonConvert.SerializeObject(forms), cancellationToken);
+    }
 }

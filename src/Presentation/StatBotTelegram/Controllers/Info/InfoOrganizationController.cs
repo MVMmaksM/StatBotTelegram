@@ -179,13 +179,27 @@ public class InfoOrganizationController(
                                       $"из списка ниже:\n\n" + infoOrg.ToShortDto();
 
                         //и формируем кнопки для каждой организации
-                        inlineButtons = CreateInlineKeyboardButtonInfoOrg.Create(infoOrg);
+                        inlineButtons = CreateInlineKeyboardButtonInfoOrg
+                            .Create<InfoOrganization>(objects:infoOrg, 
+                                nameCallbackData: CallbackData.GET_INFO_ORG, 
+                                propertyForCallbackData: "Okpo", 
+                                propertyForTextButton: "Okpo", 
+                                textForButton: "");
                     }
 
                     //если всего одна организация найдена
                     //то выдаем полную инфу по ней
                     if (infoOrg.Count() == 1)
+                    {
                         textMessage = infoOrg.ToFullDto();
+                        //и формируем кнопку получения списка форм для организации
+                        inlineButtons = CreateInlineKeyboardButtonInfoOrg
+                            .Create<InfoOrganization>(objects:infoOrg, 
+                                nameCallbackData: CallbackData.GET_LIST_FORM, 
+                                propertyForCallbackData: "Id", 
+                                propertyForTextButton: null, 
+                                textForButton: "Получить список форм");
+                    }
                 }
                 //если пришла ошибка
                 else

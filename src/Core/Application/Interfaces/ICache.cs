@@ -11,4 +11,6 @@ public interface ICache
     Task RemoveOperationCode(long chatId, CancellationToken cancellationToken);
     Task<List<InfoOrganization>?> GetInfoOrganization(RequestInfoForm requestInfo, CancellationToken cancellationToken);
     Task SetInfoOrganization(List<InfoOrganization> organizations,RequestInfoForm requestInfo, CancellationToken cancellationToken);
+    Task<List<Form>?> GetForms(string orgId, CancellationToken cancellationToken);
+    Task SetForms(string orgId, List<Form> forms, CancellationToken cancellationToken);
 }

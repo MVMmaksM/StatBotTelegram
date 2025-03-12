@@ -4,5 +4,5 @@ namespace Application.Interfaces;
 
 public interface IListForm
 {
-    Task<string> GetListForm(RequestInfoForm requestInfo, CancellationToken cancellationToken);
+    Task<ResultRequest<List<Form>, string>> GetFormsById(string orgId, CancellationToken cancellationToken);
 }
