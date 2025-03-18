@@ -10,6 +10,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using FluentValidation.Results;
+using StatBotTelegram.Extensions;
 using StatBotTelegram.Helpers;
 
 namespace StatBotTelegram.Controllers;
@@ -179,8 +180,8 @@ public class InfoOrganizationController(
                                       $"из списка ниже:\n\n" + infoOrg.ToShortDto();
 
                         //и формируем кнопки для каждой организации
-                        inlineButtons = CreateInlineKeyboardButtonInfoOrg
-                            .Create<InfoOrganization>(objects:infoOrg, 
+                        inlineButtons = CreatorInlineKeyboardButton
+                            .CreateFromList<InfoOrganization>(objects:infoOrg, 
                                 nameCallbackData: CallbackData.GET_INFO_ORG, 
                                 propertyForCallbackData: "Okpo", 
                                 propertyForTextButton: "Okpo", 
@@ -192,13 +193,18 @@ public class InfoOrganizationController(
                     if (infoOrg.Count() == 1)
                     {
                         textMessage = infoOrg.ToFullDto();
+                        
+                        //создаем кнопку экспорта
+                        var buttonExport =
+                            new InlineKeyboardButton("Экспортировать", $"{CallbackData.EXPORT_EXCEL}_{infoOrg.First().Okpo}");
                         //и формируем кнопку получения списка форм для организации
-                        inlineButtons = CreateInlineKeyboardButtonInfoOrg
-                            .Create<InfoOrganization>(objects:infoOrg, 
+                        inlineButtons = CreatorInlineKeyboardButton
+                            .CreateFromList<InfoOrganization>(objects:infoOrg, 
                                 nameCallbackData: CallbackData.GET_LIST_FORM, 
                                 propertyForCallbackData: new[]{"Id", "Okpo"}, 
                                 propertyForTextButton: null, 
-                                textForButton: NameButton.GET_LIST_FORMS);
+                                textForButton: NameButton.GET_LIST_FORMS)
+                            .AddButton(buttonExport);
                     }
                 }
                 //если пришла ошибка

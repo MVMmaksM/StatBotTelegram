@@ -2,6 +2,7 @@ using Application.Interfaces;
 using Application.Models;
 using Application.Models.SearchEmployees;
 using Application.Services;
+using Application.Services.FileGen;
 using FluentValidation;
 using StatBotTelegram.Components;
 using StatBotTelegram.Controllers;
@@ -29,6 +30,7 @@ public static class ServiceCollectionsExtension
         builder.Services.AddTransient<IInfoOrganization, InfoOrganizationService>();
         builder.Services.AddTransient<IListForm, ListFormService>();
         builder.Services.AddTransient<ISearchEmployees, SearchEmployeesService>();
+        builder.Services.AddTransient<IAbstractFactoryGenFile, FileGenFactory>();
    
         builder.Services.AddSingleton<ICache, CacheRedisService>();
         

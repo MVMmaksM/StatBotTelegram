@@ -26,15 +26,17 @@ public class TelegramBot(
             errorHandler: HandleErrorAsync,
             cancellationToken: stoppingToken,
             receiverOptions: new ReceiverOptions() { AllowedUpdates = { } },
-            updateHandler: HandleUpdateAsync);
+            updateHandler: HandleRouting);
     }
 
-    async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+    async Task HandleRouting(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
+        //обработка нажатия на кнопки
         if (update.Type == UpdateType.CallbackQuery)
         {
             if (update.CallbackQuery.Data.StartsWith(CallbackData.GET_INFO_ORG) || 
-                update.CallbackQuery.Data.StartsWith(CallbackData.GET_LIST_FORM))
+                update.CallbackQuery.Data.StartsWith(CallbackData.GET_LIST_FORM) ||
+                update.CallbackQuery.Data.StartsWith(CallbackData.EXPORT_EXCEL))
             {
                 await infoInlineKeyboardController.Handle(update, cancellationToken);
             }

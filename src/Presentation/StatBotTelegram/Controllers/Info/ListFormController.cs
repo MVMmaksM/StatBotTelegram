@@ -168,8 +168,8 @@ public class ListFormController(
                                       $"из списка ниже:\n\n" + infoOrg.ToShortDto();
 
                         //и формируем кнопки для каждой организации
-                        inlineButtons = CreateInlineKeyboardButtonInfoOrg
-                            .Create<InfoOrganization>(objects: infoOrg,
+                        inlineButtons = CreatorInlineKeyboardButton
+                            .CreateFromList<InfoOrganization>(objects: infoOrg,
                                 nameCallbackData: CallbackData.GET_LIST_FORM,
                                 propertyForCallbackData: new[]{"Id", "Okpo"}, 
                                 propertyForTextButton: "Okpo",

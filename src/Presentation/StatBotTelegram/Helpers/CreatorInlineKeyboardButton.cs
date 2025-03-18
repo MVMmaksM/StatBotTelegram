@@ -3,9 +3,9 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace StatBotTelegram.Helpers;
 
-public static class CreateInlineKeyboardButtonInfoOrg
+public static class CreatorInlineKeyboardButton
 {
-    public static InlineKeyboardButton[][] Create<T>
+    public static InlineKeyboardButton[][] CreateFromList<T>
     (
         List<T> objects,
         string nameCallbackData,
@@ -31,10 +31,10 @@ public static class CreateInlineKeyboardButtonInfoOrg
             }
 
             var identifierCallbackData = string.Join("_", propertyForCallbackData
-                    .Select(p =>
-                            typeof(T)
-                            .GetProperty(p)
-                            .GetValue(objects[i], null)));
+                .Select(p =>
+                    typeof(T)
+                        .GetProperty(p)
+                        .GetValue(objects[i], null)));
 
             inlineButtons[i] = new InlineKeyboardButton[]
             {
