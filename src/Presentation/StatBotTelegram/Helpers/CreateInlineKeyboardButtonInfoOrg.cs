@@ -9,9 +9,9 @@ public static class CreateInlineKeyboardButtonInfoOrg
     (
         List<T> objects,
         string nameCallbackData,
-        string propertyForCallbackData,
         string textForButton,
-        string propertyForTextButton = null)
+        string propertyForTextButton = null,
+        params string[] propertyForCallbackData)
     {
         var inlineButtons = new InlineKeyboardButton[objects.Count][];
         var textButton = String.Empty;
@@ -30,17 +30,18 @@ public static class CreateInlineKeyboardButtonInfoOrg
                 textButton = textForButton;
             }
 
-            var identifierCallbackData = typeof(T)
-                .GetProperty(propertyForCallbackData)
-                .GetValue(objects[i], null)
-                .ToString();
+            var identifierCallbackData = string.Join("_", propertyForCallbackData
+                    .Select(p =>
+                            typeof(T)
+                            .GetProperty(p)
+                            .GetValue(objects[i], null)));
 
             inlineButtons[i] = new InlineKeyboardButton[]
             {
                 new InlineKeyboardButton
                 {
                     Text = textButton,
-                    CallbackData = $"{nameCallbackData}{identifierCallbackData}",
+                    CallbackData = $"{nameCallbackData}_{identifierCallbackData}",
                 }
             };
         }

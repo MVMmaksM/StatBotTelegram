@@ -95,7 +95,7 @@ public class InfoOrganizationController(
     private async Task HandleOperation(Message message, CancellationToken cancellationToken)
     {
         var operationState = await cache.GetUserState(message.Chat.Id, cancellationToken);
-        var filter = new RequestInfoForm();
+        var requestInfoForm = new RequestInfoForm();
         ValidationResult validationResult = null;
         var textMessage = string.Empty;
         //в зависимости от выбранной операции 
@@ -104,26 +104,26 @@ public class InfoOrganizationController(
         {
             case OperationCode.SearchOkpo:
                 //составляем фильтр
-                filter.Okpo = message.Text.Trim();
+                requestInfoForm.Okpo = message.Text.Trim();
                 //валидация
-                validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
+                validationResult = await validatorRequestInfoForm.ValidateAsync(requestInfoForm);
                 break;
             case OperationCode.SearchInn:
                 //составляем фильтр
-                filter.Inn = message.Text.Trim();
+                requestInfoForm.Inn = message.Text.Trim();
                 //валидация
-                validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
+                validationResult = await validatorRequestInfoForm.ValidateAsync(requestInfoForm);
                 break;
             case OperationCode.SearchOgrnOgrnip:
                 //составляем фильтр
-                filter.Ogrn = message.Text.Trim();
+                requestInfoForm.Ogrn = message.Text.Trim();
                 //валидация
-                validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
+                validationResult = await validatorRequestInfoForm.ValidateAsync(requestInfoForm);
                 break;
         }
 
         //убираем всю логику в отдельный метод
-        var (splitMessages, inlineButtons) = await GenerateMessage(validationResult, filter, cancellationToken);
+        var (splitMessages, inlineButtons) = await GenerateMessage(validationResult, requestInfoForm, cancellationToken);
         
         for (int i = 0; i < splitMessages.Count(); i++)
         {
@@ -142,7 +142,7 @@ public class InfoOrganizationController(
     }
 
     private async Task<(List<string>, InlineKeyboardButton[][])> GenerateMessage
-        (ValidationResult validationResult, RequestInfoForm filter, CancellationToken cancellationToken)
+        (ValidationResult validationResult, RequestInfoForm requestInfoForm, CancellationToken cancellationToken)
     {
         var textMessage = string.Empty;
         InlineKeyboardButton[][] inlineButtons = null;
@@ -159,16 +159,16 @@ public class InfoOrganizationController(
             else
             {
                 //делаем запрос в сервис
-                var resultRequest = await infoOrganization.GetInfoOrganization(filter, cancellationToken);
+                var resultRequest = await infoOrganization.GetInfoOrganization(requestInfoForm, cancellationToken);
                 //если не пришла ошибка
                 if (resultRequest.Error == null)
                 {
                     var infoOrg = resultRequest.Content;
 
-                    //если пусто йсписко организаций пришел из сервиса
+                    //если пустой список организаций пришел из сервиса
                     //то пишем пользователю, что организаций не найдено
                     if (infoOrg == null || infoOrg.Count() == 0)
-                        textMessage = "По Вашему запросу организации не найдены!";
+                        textMessage = TextMessage.NOT_FOUND_INFO_ORG;
 
                     //если пришло больше одной организации
                     //то пишем, что найдено много организаций
@@ -196,9 +196,9 @@ public class InfoOrganizationController(
                         inlineButtons = CreateInlineKeyboardButtonInfoOrg
                             .Create<InfoOrganization>(objects:infoOrg, 
                                 nameCallbackData: CallbackData.GET_LIST_FORM, 
-                                propertyForCallbackData: "Id", 
+                                propertyForCallbackData: new[]{"Id", "Okpo"}, 
                                 propertyForTextButton: null, 
-                                textForButton: "Получить список форм");
+                                textForButton: NameButton.GET_LIST_FORMS);
                     }
                 }
                 //если пришла ошибка
@@ -212,7 +212,7 @@ public class InfoOrganizationController(
         catch (Exception e)
         {
             Console.WriteLine(e.Message);
-            textMessage = "Произошла внутренняя ошибка!";
+            textMessage = TextMessage.INTERNAL_ERROR;
         }
 
         //делим сообщение на части, чтобы не превысить размер сообщения

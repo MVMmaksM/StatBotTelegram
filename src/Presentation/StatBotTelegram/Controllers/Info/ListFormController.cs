@@ -17,13 +17,15 @@ public class ListFormController(
     ITelegramBotClient botClient,
     ICache cache,
     IValidator<RequestInfoForm> validatorRequestInfoForm,
-    IListForm listFormService)
+    IListForm listFormService,
+    IInfoOrganization infoOrganization)
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
         var state = await cache.GetUserState(message.Chat.Id, cancellationToken);
         if (state.OperationItem is not null &&
-            (message.Text != NameButton.BACK && message.Text != NameButton.BY_OKPO && message.Text != NameButton.BY_INN &&
+            (message.Text != NameButton.BACK && message.Text != NameButton.BY_OKPO &&
+             message.Text != NameButton.BY_INN &&
              message.Text != NameButton.BY_OGRN))
         {
             await HandleOperation(message, cancellationToken);
@@ -93,7 +95,7 @@ public class ListFormController(
     private async Task HandleOperation(Message message, CancellationToken cancellationToken)
     {
         var operationState = await cache.GetUserState(message.Chat.Id, cancellationToken);
-        var filter = new RequestInfoForm();
+        var requestInfoForm = new RequestInfoForm();
         ValidationResult validationResult = null;
         //в зависимости от выбранной операции 
         //составляем фильтр
@@ -101,47 +103,116 @@ public class ListFormController(
         {
             case OperationCode.SearchOkpo:
                 //составляем фильтр
-                filter.Okpo = message.Text.Trim();
-                filter.Inn = string.Empty;
-                filter.Ogrn = string.Empty;
+                requestInfoForm.Okpo = message.Text.Trim();
                 //валидация
-                validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
+                validationResult = await validatorRequestInfoForm.ValidateAsync(requestInfoForm);
                 break;
             case OperationCode.SearchInn:
                 //составляем фильтр
-                filter.Okpo = string.Empty;
-                filter.Inn = message.Text.Trim();
-                filter.Ogrn = string.Empty;
+                requestInfoForm.Inn = message.Text.Trim();
                 //валидация
-                validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
+                validationResult = await validatorRequestInfoForm.ValidateAsync(requestInfoForm);
                 break;
             case OperationCode.SearchOgrnOgrnip:
                 //составляем фильтр
-                filter.Okpo = string.Empty;
-                filter.Inn = string.Empty;
-                filter.Ogrn = message.Text.Trim();
+                requestInfoForm.Ogrn = message.Text.Trim();
                 //валидация
-                validationResult = await validatorRequestInfoForm.ValidateAsync(filter);
+                validationResult = await validatorRequestInfoForm.ValidateAsync(requestInfoForm);
                 break;
         }
+        
+        //убираем всю логику в отдельный метод
+        var (splitMessages, inlineButtons) = await GenerateMessage(validationResult, requestInfoForm, cancellationToken);
 
-        //TODO переписать логику получения форм
-        //нужно дернуть сервис получения инфы об организации
-        //затем дергать сервис получения форм
-        var result = !validationResult.IsValid
-            ? validationResult.Errors.ToDto()
-            : "test";//await listFormService.GetListForm(filter, cancellationToken);
-
-        var splitMessages = SplitterMessage.SplitMessage(result);
-
-        foreach (var messagePart in splitMessages)
+        for (int i = 0; i < splitMessages.Count(); i++)
         {
             //ответ
             await botClient.SendMessage(chatId: message.Chat.Id,
                 protectContent: false, replyParameters: message.Id,
-                text: messagePart,
+                text: splitMessages[i],
                 parseMode: ParseMode.Html, cancellationToken: cancellationToken,
-                replyMarkup: KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn);
+                replyMarkup: inlineButtons is not null && i == splitMessages.Count() - 1 ? inlineButtons :
+                    KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn); 
         }
+    }
+
+    private async Task<(List<string>, InlineKeyboardButton[][])> GenerateMessage
+        (ValidationResult validationResult, RequestInfoForm requestInfoForm, CancellationToken cancellationToken)
+    {
+        var textMessage = string.Empty;
+        InlineKeyboardButton[][] inlineButtons = null;
+
+        try
+        {
+            if (validationResult.IsValid)
+            {
+                var responceInfoOrg = await infoOrganization.GetInfoOrganization(requestInfoForm, cancellationToken);
+                if (responceInfoOrg.Error != null)
+                {
+                    textMessage = responceInfoOrg.Error.ToDto();
+                }
+                else
+                {
+                    var infoOrg = responceInfoOrg.Content;
+                    //если пустой список организаций пришел из сервиса
+                    //то пишем пользователю, что организаций не найдено
+                    if (infoOrg == null || infoOrg.Count() == 0)
+                        textMessage = TextMessage.NOT_FOUND_INFO_ORG;
+
+                    //если пришло больше одной организации
+                    //то пишем, что найдено много организаций
+                    if (infoOrg.Count() > 1)
+                    {
+                        textMessage = $"По Вашему запросу найдено организаций: {infoOrg.Count}\n" +
+                                      $"Для того, чтобы получить перечень форм по конкретной организации, выберите ОКПО " +
+                                      $"из списка ниже:\n\n" + infoOrg.ToShortDto();
+
+                        //и формируем кнопки для каждой организации
+                        inlineButtons = CreateInlineKeyboardButtonInfoOrg
+                            .Create<InfoOrganization>(objects: infoOrg,
+                                nameCallbackData: CallbackData.GET_LIST_FORM,
+                                propertyForCallbackData: new[]{"Id", "Okpo"}, 
+                                propertyForTextButton: "Okpo",
+                                textForButton: "");
+                    }
+
+                    //если всего одна организация найдена
+                    //то дергаем сервис получения форм для
+                    //найденной организации
+                    if (infoOrg.Count() == 1)
+                    {
+                        var responceListForm =
+                            await listFormService.GetFormsById(infoOrg.First().Id, cancellationToken);
+
+                        if (responceListForm.Error != null)
+                        {
+                            textMessage = responceListForm.Error;
+                        }
+                        else if (responceListForm.Content == null || responceListForm.Content.Count() == 0)
+                        {
+                            textMessage = TextMessage.NOT_FOUND_LIST_FORM;
+                        }
+                        else
+                        {
+                            textMessage = responceListForm.Content.ToDto(infoOrg.First().Okpo);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                textMessage = validationResult.Errors.ToDto();
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            textMessage = TextMessage.INTERNAL_ERROR;
+        }
+
+        //делим сообщение на части, чтобы не превысить размер сообщения
+        var splitMessages = SplitterMessage.SplitMessage(textMessage);
+
+        return (splitMessages, inlineButtons);
     }
 }

@@ -21,11 +21,19 @@ public class InfoInlineKeyboardController(
     {
         var textMessage = string.Empty;
 
-        if (update.CallbackQuery.Data.StartsWith(CallbackData.GET_INFO_ORG))
-            textMessage = await GetInfoOrg(update, cancellationToken);
+        try
+        {
+            if (update.CallbackQuery.Data.StartsWith(CallbackData.GET_INFO_ORG))
+                textMessage = await GetInfoOrg(update, cancellationToken);
 
-        if (update.CallbackQuery.Data.StartsWith(CallbackData.GET_LIST_FORM))
-            textMessage = await GetListForm(update, cancellationToken);
+            if (update.CallbackQuery.Data.StartsWith(CallbackData.GET_LIST_FORM))
+                textMessage = await GetListForm(update, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            textMessage = TextMessage.INTERNAL_ERROR;
+        }
 
         await botClient.SendMessage(chatId: update.CallbackQuery.From.Id,
             protectContent: false,
@@ -61,13 +69,13 @@ public class InfoInlineKeyboardController(
             }
             else
             {
-                textMessage = "Информация по организации не найдена!";
+                textMessage = TextMessage.NOT_FOUND_INFO_ORG;
             }
         }
         catch (Exception e)
         {
             Console.WriteLine(e.StackTrace);
-            textMessage = "Произогла внутренняя ошибка";
+            textMessage = TextMessage.INTERNAL_ERROR;
         }
 
         return textMessage;
@@ -79,6 +87,7 @@ public class InfoInlineKeyboardController(
         ResultRequest<List<Form>, string> responce = null;
         
         var orgId = update.CallbackQuery.Data.Split("_")[1];
+        var orgOkpo = update.CallbackQuery.Data.Split("_")[2];
 
         try
         {
@@ -91,17 +100,17 @@ public class InfoInlineKeyboardController(
             {
                 textMessage = responce
                     .Content.
-                    ToDto();
+                    ToDto(orgOkpo);
             }
             else
             {
-                textMessage = "Формы не найдены!";
+                textMessage = TextMessage.NOT_FOUND_LIST_FORM;
             }
         }
         catch (Exception e)
         {
             Console.WriteLine(e.StackTrace);
-            textMessage = "Произошла внутренняя ошибка";
+            textMessage = TextMessage.INTERNAL_ERROR;
         }
 
         return textMessage;

@@ -14,4 +14,7 @@ public static class TextMessage
     public const string SEARCH_FIO_EMPLOYEE = "Введите фамилию специалиста:";
     public const string SEARCH_PHONE_EMPLOYEE = "Введите номер телефона специалиста:";
     public const string SEACRH_INDEX_FORM = "Введите индекс формы (например: П-2)";
+    public const string NOT_FOUND_LIST_FORM = "Для данной организации не найдены формы статистической отчётности";
+    public const string NOT_FOUND_INFO_ORG = "По Вашему запросу организации не найдены!";
+    public const string INTERNAL_ERROR = "Произошла внутренняя ошибка";
 }
