@@ -8,7 +8,7 @@ public class InfoOrganization
     public string Id { get; set; }
 
     [JsonProperty(PropertyName = "name")]
-    public string ShortName { get; set; }
+    public string Name { get; set; }
 
     [JsonProperty(PropertyName = "okpo")]
     public string Okpo { get; set; }

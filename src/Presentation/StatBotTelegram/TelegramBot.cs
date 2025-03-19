@@ -36,7 +36,8 @@ public class TelegramBot(
         {
             if (update.CallbackQuery.Data.StartsWith(CallbackData.GET_INFO_ORG) || 
                 update.CallbackQuery.Data.StartsWith(CallbackData.GET_LIST_FORM) ||
-                update.CallbackQuery.Data.StartsWith(CallbackData.EXPORT_EXCEL))
+                update.CallbackQuery.Data.StartsWith(CallbackData.EXPORT_EXCEL_INFO_ORG) ||
+                update.CallbackQuery.Data.StartsWith(CallbackData.EXPORT_EXCEL_LIST_FORM))
             {
                 await infoInlineKeyboardController.Handle(update, cancellationToken);
             }

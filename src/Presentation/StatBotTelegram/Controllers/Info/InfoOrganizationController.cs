@@ -196,7 +196,7 @@ public class InfoOrganizationController(
                         
                         //создаем кнопку экспорта
                         var buttonExport =
-                            new InlineKeyboardButton("Экспортировать", $"{CallbackData.EXPORT_EXCEL}_{infoOrg.First().Okpo}");
+                            new InlineKeyboardButton("Экспортировать", $"{CallbackData.EXPORT_EXCEL_INFO_ORG}_{infoOrg.First().Okpo}");
                         //и формируем кнопку получения списка форм для организации
                         inlineButtons = CreatorInlineKeyboardButton
                             .CreateFromList<InfoOrganization>(objects:infoOrg, 
