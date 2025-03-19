@@ -5,6 +5,8 @@ using Application.Models;
 using Application.Services;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
+using StatBotTelegram.Extensions;
+using StatBotTelegram.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -20,7 +22,7 @@ public class InfoInlineKeyboardController(
 {
     public async Task Handle(Update update, CancellationToken cancellationToken)
     {
-        InlineKeyboardButton buttonExport = null;
+        InlineKeyboardButton[][] buttonExport = null;
         var textMessage = string.Empty;
         byte[] bytesFile = null;
 
@@ -51,7 +53,7 @@ public class InfoInlineKeyboardController(
             await botClient.SendMessage(chatId: update.CallbackQuery.From.Id,
                 protectContent: false,
                 text: textMessage,
-                replyMarkup: buttonExport ?? null,
+                replyMarkup: buttonExport,
                 parseMode: ParseMode.Html, cancellationToken: cancellationToken);
         }
     }
@@ -99,11 +101,11 @@ public class InfoInlineKeyboardController(
         return (textMessage, bytesFile);
     }
 
-    private async Task<(string, InlineKeyboardButton)> GetInfoOrg(Update update, CancellationToken cancellationToken)
+    private async Task<(string, InlineKeyboardButton[][])> GetInfoOrg(Update update, CancellationToken cancellationToken)
     {
         var textMessage = string.Empty;
         ResultRequest<List<InfoOrganization>, ErrorInfoOrganization> responce = null;
-        InlineKeyboardButton buttonExport = null;
+        InlineKeyboardButton[][] buttons = null;
 
         var okpo = update.CallbackQuery.Data.Split("_")[1];
         var request = new RequestInfoForm()
@@ -120,14 +122,27 @@ public class InfoInlineKeyboardController(
 
             if (responce.Content.Any())
             {
-                buttonExport = 
+                var buttonExport = 
                     new InlineKeyboardButton("Экспортировать", $"{CallbackData.EXPORT_EXCEL}_{responce.Content.First().Okpo}");
-                
-                textMessage = responce
+
+                //выбираем из списка одну организацию
+                //по выбранному ОКПО
+                var infoOrg = responce
                     .Content
                     .Where(o => o.Okpo == okpo)
-                    .ToList()
-                    .ToFullDto();
+                    .ToList();
+                
+                //и формируем кнопку получения списка форм для организации
+                //и кнопку экспорта
+                buttons = CreatorInlineKeyboardButton
+                    .CreateFromList<InfoOrganization>(objects:infoOrg, 
+                        nameCallbackData: CallbackData.GET_LIST_FORM, 
+                        propertyForCallbackData: new[]{"Id", "Okpo"}, 
+                        propertyForTextButton: null, 
+                        textForButton: NameButton.GET_LIST_FORMS)
+                    .AddButton(buttonExport);
+
+                textMessage = infoOrg.ToFullDto();
             }
             else
             {
@@ -140,7 +155,7 @@ public class InfoInlineKeyboardController(
             textMessage = TextMessage.INTERNAL_ERROR;
         }
 
-        return (textMessage, buttonExport);
+        return (textMessage, buttons);
     }
 
     private async Task<string> GetListForm(Update update, CancellationToken cancellationToken)
