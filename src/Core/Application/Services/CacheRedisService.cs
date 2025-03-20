@@ -99,11 +99,13 @@ public class CacheRedisService(IDistributedCache cacheRedis) : ICache
         if (requestInfo.Inn != string.Empty)
             key = string.Concat("infoInn_", requestInfo.Inn);
         
+        if (requestInfo.Ogrn != string.Empty)
+            key = string.Concat("infoOgrn_", requestInfo.Ogrn);
+        
         var dataCache = await cacheRedis.GetStringAsync(key, cancellationToken);
+        
         if (dataCache != null)
-        {
             organizations = JsonConvert.DeserializeObject<List<InfoOrganization>>(dataCache);
-        }
 
         return organizations;
     }
@@ -137,25 +139,58 @@ public class CacheRedisService(IDistributedCache cacheRedis) : ICache
                         JsonConvert.SerializeObject(listInfoOrg), cacheOptions, cancellationToken);
                 }
 
-                //сохраняем весь спико под одним ключом 
+                //сохраняем весь список под одним ключом 
                 //по ИНН, т.к. если в списке > 1 организации
                 //то это головное подразделение
                 //и у всех организаций одинаковый ИНН
                 var inn = organizations[0].Inn;
                 await cacheRedis.SetStringAsync($"infoInn_{inn}", serialize, cacheOptions, cancellationToken);
+                //сохраняем весь список под одним ключом 
+                //по ОГРН, т.к. если в списке > 1 организации
+                //то это головное подразделение
+                //и у всех организаций одинаковый ОГРН
+                var ogrn = organizations[0].Ogrn;
+                await cacheRedis.SetStringAsync($"infoOgrn_{ogrn}", serialize, cacheOptions, cancellationToken);
             }
         }
 
         if (requestInfo.Inn != string.Empty)
         {
-            //сохраняем в кэш по ИНН
+            //сохраняем в кэш по ИНН и ОГРН
             //независимо от количества организаций
+            //т.к. запрос по ИНН или ОГРН всегда
+            //возвращает либо список, либо одну организацию
+            var inn = organizations[0].Inn;
+            await cacheRedis.SetStringAsync($"infoInn_{inn}", serialize, cacheOptions, cancellationToken);
+            
+            var ogrn = organizations[0].Ogrn;
+            await cacheRedis.SetStringAsync($"infoOgrn_{ogrn}", serialize, cacheOptions, cancellationToken);
+
+            //если по ИНН приходит одна организация
+            //значит и по ОГРН и ОКПО будет одна
+            //поэтому добавляем ее в кэш по ОКПО и ОГРН
+            if (organizations.Count() == 1)
+            {
+                var okpo = organizations[0].Okpo;
+                await cacheRedis.SetStringAsync($"infoOkpo_{okpo}", serialize, cacheOptions, cancellationToken);
+            }
+        }
+        
+        if (requestInfo.Ogrn != string.Empty)
+        {
+            //сохраняем в кэш по ОГРН и ИНН
+            //независимо от количества организаций
+            //т.к. запрос по ИНН или ОГРН всегда
+            //возвращает либо список, либо одну организацию
+            var ogrn = organizations[0].Ogrn;
+            await cacheRedis.SetStringAsync($"infoOgrn_{ogrn}", serialize, cacheOptions, cancellationToken);
+            
             var inn = organizations[0].Inn;
             await cacheRedis.SetStringAsync($"infoInn_{inn}", serialize, cacheOptions, cancellationToken);
 
-            //если по ИНН приходит одна организация
-            //значит и по ОКПО будет одна
-            //поэтому добавляем ее в кэш по ОКПО
+            //если по ОГРН приходит одна организация
+            //значит и по ОКПО и ИНН будет одна
+            //поэтому добавляем ее в кэш по ОКПО и ИНН
             if (organizations.Count() == 1)
             {
                 var okpo = organizations[0].Okpo;
