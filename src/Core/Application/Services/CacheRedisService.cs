@@ -146,10 +146,21 @@ public class CacheRedisService(IDistributedCache cacheRedis) : ICache
             }
         }
 
-        if (requestInfo.Inn != string.Empty && organizations.Count() > 1)
+        if (requestInfo.Inn != string.Empty)
         {
+            //сохраняем в кэш по ИНН
+            //независимо от количества организаций
             var inn = organizations[0].Inn;
             await cacheRedis.SetStringAsync($"infoInn_{inn}", serialize, cacheOptions, cancellationToken);
+
+            //если по ИНН приходит одна организация
+            //значит и по ОКПО будет одна
+            //поэтому добавляем ее в кэш по ОКПО
+            if (organizations.Count() == 1)
+            {
+                var okpo = organizations[0].Okpo;
+                await cacheRedis.SetStringAsync($"infoOkpo_{okpo}", serialize, cacheOptions, cancellationToken);
+            }
         }
     }
 
