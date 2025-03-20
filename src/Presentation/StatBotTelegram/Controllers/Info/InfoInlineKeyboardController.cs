@@ -20,190 +20,204 @@ public class InfoInlineKeyboardController(
     IListForm listFormService,
     IAbstractFactoryGenFile factoryGenFile)
 {
-    public async Task Handle(Update update, CancellationToken cancellationToken)
+    public async Task Handle(Update update, CancellationToken ct)
     {
-        string fileName = String.Empty;
         InlineKeyboardButton[][] buttons = null;
+        var fileName = string.Empty;
         var textMessage = string.Empty;
         byte[] bytesFile = null;
 
         try
         {
             if (update.CallbackQuery.Data.StartsWith(CallbackData.GET_INFO_ORG))
-                (textMessage, buttons) = await GetInfoOrg(update, cancellationToken);
+                (textMessage, buttons) = await GetInfoOrg(update, ct);
 
             if (update.CallbackQuery.Data.StartsWith(CallbackData.GET_LIST_FORM))
-                (textMessage, buttons) = await GetListForm(update, cancellationToken);
-
-            //экспорт
+                (textMessage, buttons) = await GetListForm(update, ct);
+            //экспорт инфо об организации
             if (update.CallbackQuery.Data.StartsWith(CallbackData.EXPORT_EXCEL_INFO_ORG))
-                (textMessage, fileName, bytesFile) = await ExportExcelInfoOrg(update, cancellationToken);
-            
+                (textMessage, fileName, bytesFile) = await ExportExcelInfoOrg(update, ct);
+            //экспорт инфо перечня форм
             if (update.CallbackQuery.Data.StartsWith(CallbackData.EXPORT_EXCEL_LIST_FORM))
-                (textMessage, fileName, bytesFile) = await ExportExcelListForm(update, cancellationToken);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            textMessage = TextMessage.INTERNAL_ERROR;
-        }
-
-        if (string.IsNullOrWhiteSpace(textMessage) && bytesFile != null)
-        {
-            await using var ms = new MemoryStream(bytesFile);
-            await botClient.SendDocument(update.CallbackQuery.From.Id,InputFile.FromStream(ms, fileName));
-        }
-        else
-        {
-            await botClient.SendMessage(chatId: update.CallbackQuery.From.Id,
-                protectContent: false,
-                text: textMessage,
-                replyMarkup: buttons,
-                parseMode: ParseMode.Html, cancellationToken: cancellationToken);
-        }
-    }
-
-    private async Task<(string, string, byte[])> ExportExcelListForm(Update update, CancellationToken cancellationToken)
-    {
-        string fileName = "Перечень форм.xlsx";
-        byte[] bytesFile = null;
-        var textMessage = string.Empty;
-        ResultRequest<List<Form>, string> responce = null;
-        var excelFileGen = factoryGenFile.GetExcelFileGen();
-
-        var orgId = update.CallbackQuery.Data.Split("_")[1];
-        var orgOkpo = update.CallbackQuery.Data.Split("_")[2];
-
-        try
-        {
-            responce = await listFormService.GetFormsById(orgId, cancellationToken);
-
-            if (responce.Error != null)
-                textMessage = responce.Error;
-
-            if (responce.Content != null && responce.Content.Any())
-            {
-                var forms = responce
-                    .Content
-                    .ToList();
-
-                bytesFile = await excelFileGen.GetFileListForm(forms, orgOkpo, cancellationToken);
-            }
-            else
-            {
-                textMessage = TextMessage.NOT_FOUND_LIST_FORM;
-            }
+                (textMessage, fileName, bytesFile) = await ExportExcelListForm(update, ct);
         }
         catch (Exception e)
         {
             Console.WriteLine($"{e.Message} \n{e.StackTrace}");
             textMessage = TextMessage.INTERNAL_ERROR;
+        }
+
+        //если сообщение пустое, а файл нет
+        //значит отправляем файл
+        if (string.IsNullOrWhiteSpace(textMessage) && bytesFile != null)
+        {
+            await using var ms = new MemoryStream(bytesFile);
+            await botClient.SendDocument(
+                chatId: update.CallbackQuery.From.Id,
+                document: InputFile.FromStream(ms, fileName));
+        }
+        else
+        {
+            //делим сообщение на части
+            var splitMessages = SplitterMessage.SplitMessage(textMessage);
+            //отправляем частями
+            for (int i = 0; i < splitMessages.Count(); i++)
+            {
+                await botClient.SendMessage(
+                    chatId: update.CallbackQuery.From.Id,
+                    protectContent: false,
+                    text: textMessage,
+                    replyMarkup: i == splitMessages.Count() - 1 ? buttons : null,
+                    parseMode: ParseMode.Html,
+                    cancellationToken: ct);
+            }
+        }
+    }
+
+    private async Task<(string, string, byte[]?)> ExportExcelListForm(Update update, CancellationToken ct)
+    {
+        var fileName = string.Empty;
+        var textMessage = string.Empty;
+        byte[] bytesFile = null;
+        ResultRequest<List<Form>, string> responce = null;
+
+        //получаем генератор файла
+        var excelFileGen = factoryGenFile.GetExcelFileGen();
+
+        //получаем из callbackQuery ид и окпо организации
+        var orgId = update.CallbackQuery.Data.Split("_")[1];
+        var orgOkpo = update.CallbackQuery.Data.Split("_")[2];
+
+        //дергаем сервис
+        responce = await listFormService.GetFormsById(orgId, ct);
+
+        //если есть ошибка, то пишем
+        //в сообщение
+        if (responce.Error != null)
+            textMessage = responce.Error;
+
+        //если есть данные
+        if (responce.Content != null && responce.Content.Any())
+        {
+            var forms = responce
+                .Content
+                .ToList();
+
+            //генерируем файл
+            bytesFile = await excelFileGen.GetFileListForm(forms, orgOkpo, ct);
+            fileName = "Перечень форм.xlsx";
+        }
+        else
+        {
+            textMessage = TextMessage.NOT_FOUND_LIST_FORM;
         }
 
         return (textMessage, fileName, bytesFile);
     }
-    private async Task<(string, string, byte[])> ExportExcelInfoOrg(Update update, CancellationToken cancellationToken)
+
+    private async Task<(string, string, byte[]?)> ExportExcelInfoOrg(Update update, CancellationToken ct)
     {
-        string fileName = "Игформация об организации.xlsx";
-        byte[] bytesFile = null;
+        var fileName = string.Empty;
         var textMessage = string.Empty;
+        byte[] bytesFile = null;
         ResultRequest<List<InfoOrganization>, ErrorInfoOrganization> responce = null;
+
+        //получаем генератор файла
         var excelFileGen = factoryGenFile.GetExcelFileGen();
 
-        var okpo = update.CallbackQuery.Data.Split("_")[1];
+        //формируем запрос
         var request = new RequestInfoForm()
         {
-            Okpo = okpo
+            Okpo = update.CallbackQuery.Data.Split("_")[1]
         };
 
-        try
+        //дергаем сервис
+        responce = await infoOrgService.GetInfoOrganization(request, ct);
+
+        //если есть ошибка
+        //то пишем в сообщение
+        if (responce.Error != null)
+            textMessage = responce.Error.ToDto();
+
+        //если есть данные
+        if (responce.Content != null && responce.Content.Any())
         {
-            responce = await infoOrgService.GetInfoOrganization(request, cancellationToken);
+            //то выбираем из списка только одну запись
+            //с введенным ОКПО
+            var infoOrg = responce
+                .Content
+                .Where(o => o.Okpo == request.Okpo)
+                .ToList();
 
-            if (responce.Error != null)
-                textMessage = responce.Error.ToDto();
-
-            if (responce.Content != null && responce.Content.Any())
-            {
-                var infoOrg = responce
-                    .Content
-                    .Where(o => o.Okpo == okpo)
-                    .ToList();
-
-                bytesFile = await excelFileGen.GetFileInfoOrg(infoOrg, cancellationToken);
-            }
-            else
-            {
-                textMessage = TextMessage.NOT_FOUND_INFO_ORG;
-            }
+            //генерируем файл
+            bytesFile = await excelFileGen.GetFileInfoOrg(infoOrg, ct);
+            fileName = "Информация об организации.xlsx";
         }
-        catch (Exception e)
+        else
         {
-            Console.WriteLine($"{e.Message} \n{e.StackTrace}");
-            textMessage = TextMessage.INTERNAL_ERROR;
+            textMessage = TextMessage.NOT_FOUND_INFO_ORG;
         }
 
-        return (textMessage,fileName, bytesFile);
+        return (textMessage, fileName, bytesFile);
     }
 
-    private async Task<(string, InlineKeyboardButton[][])> GetInfoOrg(Update update, CancellationToken cancellationToken)
+    private async Task<(string, InlineKeyboardButton[][])> GetInfoOrg(Update update, CancellationToken ct)
     {
         var textMessage = string.Empty;
         ResultRequest<List<InfoOrganization>, ErrorInfoOrganization> responce = null;
         InlineKeyboardButton[][] buttons = null;
 
-        var okpo = update.CallbackQuery.Data.Split("_")[1];
+        //готовим запрос
         var request = new RequestInfoForm()
         {
-            Okpo = okpo
+            //получаем ОКПО из CallbackQuery
+            Okpo = update.CallbackQuery.Data.Split("_")[1]
         };
 
-        try
+        //дергаем сервис
+        responce = await infoOrgService.GetInfoOrganization(request, ct);
+
+        //если ошибка
+        //пишем в сообщение
+        if (responce.Error != null)
+            textMessage = responce.Error.ToDto();
+
+        //если есть данные
+        if (responce.Content.Any())
         {
-            responce = await infoOrgService.GetInfoOrganization(request, cancellationToken);
+            //выбираем из списка одну организацию
+            //по выбранному ОКПО
+            var infoOrg = responce
+                .Content
+                .Where(o => o.Okpo == request.Okpo)
+                .ToList();
+            
+            //готовим кнопку получения перечня форм
+            var buttonGetForms = 
+                new InlineKeyboardButton(text: NameButton.GET_LIST_FORMS,
+                    callbackDataOrUrl: $"{CallbackData.GET_LIST_FORM}_{infoOrg.First().Id}_{infoOrg.First().Okpo}");
+            //готовим кнопку экспорта
+            var buttonExport =
+                new InlineKeyboardButton(text: NameButton.EXPORT,
+                    callbackDataOrUrl: $"{CallbackData.EXPORT_EXCEL_INFO_ORG}_{responce.Content.First().Okpo}");
 
-            if (responce.Error != null)
-                textMessage = responce.Error.ToDto();
+            //добавляем кнопки
+            buttons = new InlineKeyboardButton[0][]
+                .AddButton(buttonGetForms)
+                .AddButton(buttonExport);
 
-            if (responce.Content.Any())
-            {
-                var buttonExport = 
-                    new InlineKeyboardButton("Экспортировать", $"{CallbackData.EXPORT_EXCEL_INFO_ORG}_{responce.Content.First().Okpo}");
-
-                //выбираем из списка одну организацию
-                //по выбранному ОКПО
-                var infoOrg = responce
-                    .Content
-                    .Where(o => o.Okpo == okpo)
-                    .ToList();
-                
-                //и формируем кнопку получения списка форм для организации
-                //и кнопку экспорта
-                buttons = CreatorInlineKeyboardButton
-                    .CreateFromList<InfoOrganization>(objects:infoOrg, 
-                        nameCallbackData: CallbackData.GET_LIST_FORM, 
-                        propertyForCallbackData: new[]{"Id", "Okpo"}, 
-                        propertyForTextButton: null, 
-                        textForButton: NameButton.GET_LIST_FORMS)
-                    .AddButton(buttonExport);
-
-                textMessage = infoOrg.ToFullDto();
-            }
-            else
-            {
-                textMessage = TextMessage.NOT_FOUND_INFO_ORG;
-            }
+            textMessage = infoOrg.ToFullDto();
         }
-        catch (Exception e)
+        else
         {
-            Console.WriteLine(e.StackTrace);
-            textMessage = TextMessage.INTERNAL_ERROR;
+            textMessage = TextMessage.NOT_FOUND_INFO_ORG;
         }
+
 
         return (textMessage, buttons);
     }
 
-    private async Task<(string,InlineKeyboardButton[][])> GetListForm(Update update, CancellationToken cancellationToken)
+    private async Task<(string, InlineKeyboardButton[][])> GetListForm(Update update, CancellationToken ct)
     {
         var textMessage = string.Empty;
         ResultRequest<List<Form>, string> responce = null;
@@ -214,7 +228,7 @@ public class InfoInlineKeyboardController(
 
         try
         {
-            responce = await listFormService.GetFormsById(orgId, cancellationToken);
+            responce = await listFormService.GetFormsById(orgId, ct);
 
             if (responce.Error != null)
                 textMessage = responce.Error;
@@ -226,9 +240,10 @@ public class InfoInlineKeyboardController(
 
                 buttons = new InlineKeyboardButton[][]
                 {
-                    new []
+                    new[]
                     {
-                        new InlineKeyboardButton("Экспортировать", $"{CallbackData.EXPORT_EXCEL_LIST_FORM}_{orgId}_{orgOkpo}")
+                        new InlineKeyboardButton("Экспортировать",
+                            $"{CallbackData.EXPORT_EXCEL_LIST_FORM}_{orgId}_{orgOkpo}")
                     }
                 };
             }

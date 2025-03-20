@@ -16,4 +16,5 @@ public static class NameButton
     public const string BY_INN = "По ИНН";
     public const string BY_OGRN = "По ОГРН/ОГРНИП";
     public const string BY_INDEX_FORM = "По индексу формы";
+    public const string EXPORT = "Экспортировать";
 }
