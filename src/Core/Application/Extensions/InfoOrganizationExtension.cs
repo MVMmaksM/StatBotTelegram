@@ -10,7 +10,7 @@ public static class InfoOrganizationExtension
         var fullInfo = organization
             .Select(info =>
                 "<b>Данные о кодах статистики:</b>\n\n" +
-                $"Краткое наименование: {info.Name}\n" +
+                $"Наименование: {info.Name}\n" +
                 $"ОКПО / Идентификационный номер ТОСП: {info.Okpo}\n" +
                 $"ОГРН / ОГРНИП: {info.Ogrn}\n" +
                 $"Дата регистрации: {info.DateReg}\n" +
@@ -31,7 +31,7 @@ public static class InfoOrganizationExtension
     {
         var shortInfo = organization.Select(info =>
             $"ОКПО / Идентификационный номер ТОСП: {info.Okpo}\n" +
-            $"Краткое наименование: {info.Name}\n" +
+            $"Наименование: {info.Name}\n" +
             $"ОКАТО фактический: {info.OkatoFact.Code} - {info.OkatoFact.Name}\n");
 
         return string.Join("\n", shortInfo);

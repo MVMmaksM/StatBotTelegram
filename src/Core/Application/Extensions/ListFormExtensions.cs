@@ -4,9 +4,11 @@ namespace Application.Extensions;
 
 public static class ListFormExtensions
 {
-    public static string ToDto(this List<Form> forms, string orgOkpo)
+    public static string ToDto(this List<Form> forms, string orgOkpo = null)
     {
-        var result = $"<b>Перечень форм для ОКПО {orgOkpo}:</b>\n\n";
+        var result = orgOkpo is null ? 
+            "<b>Перечень форм:</b>\n\n" : 
+            $"<b>Перечень форм для ОКПО {orgOkpo}:</b>\n\n";
 
         var dto = forms.Select(f =>
             $"Индекс формы: {f.Index}\n" +
