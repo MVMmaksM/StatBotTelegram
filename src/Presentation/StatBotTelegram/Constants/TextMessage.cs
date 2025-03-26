@@ -17,4 +17,5 @@ public static class TextMessage
     public const string NOT_FOUND_LIST_FORM = "Для данной организации не найдены формы статистической отчётности";
     public const string NOT_FOUND_INFO_ORG = "По Вашему запросу организации не найдены!";
     public const string INTERNAL_ERROR = "Произошла внутренняя ошибка";
+    public const string NOT_FOUND_TEMPLATES = "Шаблоны не найдены";
 }

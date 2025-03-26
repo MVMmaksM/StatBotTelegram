@@ -49,21 +49,21 @@ public class InfoOrganizationController(
             //По ОКПО
             case NameButton.BY_OKPO:
                 textMessage = TextMessage.SEARCH_OKPO;
-                buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
+                buttonMenu = KeyboradButtonMenu.ButtonsGetInfoOrg;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOkpo, cancellationToken);
                 break;
             //По ИНН
             case NameButton.BY_INN:
                 textMessage = TextMessage.SEACRH_INN;
-                buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
+                buttonMenu = KeyboradButtonMenu.ButtonsGetInfoOrg;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchInn, cancellationToken);
                 break;
             //По ОГРН/ОГРНИП
             case NameButton.BY_OGRN:
                 textMessage = TextMessage.SEARXH_OGRN;
-                buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
+                buttonMenu = KeyboradButtonMenu.ButtonsGetInfoOrg;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOgrnOgrnip, cancellationToken);
                 break;
@@ -79,7 +79,7 @@ public class InfoOrganizationController(
             default:
                 //по умолчанию кнопки меню
                 textMessage = TextMessage.UNKNOWN_COMMAND;
-                buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
+                buttonMenu = KeyboradButtonMenu.ButtonsGetInfoOrg;
                 //скидываем состояние выбранной операции
                 await cache.RemoveOperationCode(message.Chat.Id, cancellationToken);
                 break;
@@ -138,7 +138,7 @@ public class InfoOrganizationController(
                 //иначе показываем дефолтные менюшные кнопки
                 replyMarkup: inlineButtons is not null && i == splitMessages.Count() - 1
                     ? inlineButtons
-                    : KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn);
+                    : KeyboradButtonMenu.ButtonsGetInfoOrg);
         }
     }
 

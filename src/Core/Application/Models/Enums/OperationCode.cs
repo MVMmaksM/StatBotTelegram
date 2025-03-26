@@ -8,5 +8,6 @@ public enum OperationCode
     SearchOkpo,
     SearchInn,
     SearchOgrnOgrnip,
-    SearchIndexForm
+    SearchIndexForm,
+    DownlodTemplate
 }

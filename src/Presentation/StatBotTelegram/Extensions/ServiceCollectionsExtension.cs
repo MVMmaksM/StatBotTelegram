@@ -31,6 +31,7 @@ public static class ServiceCollectionsExtension
         builder.Services.AddTransient<IListForm, ListFormService>();
         builder.Services.AddTransient<ISearchEmployees, SearchEmployeesService>();
         builder.Services.AddTransient<IAbstractFactoryGenFile, FileGenFactory>();
+        builder.Services.AddTransient<ITemplateService, TemplateService>();
    
         builder.Services.AddSingleton<ICache, CacheRedisService>();
         
@@ -51,6 +52,7 @@ public static class ServiceCollectionsExtension
 
         builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Singleton);
         builder.Services.AddValidatorsFromAssemblyContaining<RequestInfoForm>(ServiceLifetime.Transient);
+        builder.Services.AddValidatorsFromAssemblyContaining<RequestGetTemplate>(ServiceLifetime.Transient);
         //builder.Services.AddValidatorsFromAssemblyContaining<RequestSearchEmployees>(ServiceLifetime.Transient);
         builder.Services.AddHostedService<TelegramBot>();
         

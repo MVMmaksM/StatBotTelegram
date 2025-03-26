@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace Application.Services;
 
-public class ListFormService(IRequesterApi requesterApi, ICache cacheRedis) : IListForm
+public class ListFormService(IRequesterApi requesterApiService, ICache cacheRedis) : IListForm
 {
     public async Task<ResultRequest<List<Form>, string>> GetFormsById(string orgId, CancellationToken cancellationToken)
     {
@@ -14,7 +14,7 @@ public class ListFormService(IRequesterApi requesterApi, ICache cacheRedis) : IL
 
         if (cache == null)
         {
-            var responce =  await requesterApi.GetAsync<List<Form>, string>
+            var responce =  await requesterApiService.GetAsync<List<Form>, string>
                 ($"/webstat/api/gs//organizations/{orgId}/forms", cancellationToken);
             
             if (responce.Content != null && responce.Content.Any())

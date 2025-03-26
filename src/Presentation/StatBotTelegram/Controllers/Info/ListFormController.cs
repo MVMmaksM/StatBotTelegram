@@ -2,9 +2,11 @@ using Application.Constants;
 using Application.Extensions;
 using Application.Interfaces;
 using Application.Models;
+using Application.Models.Templates;
 using FluentValidation;
 using FluentValidation.Results;
 using StatBotTelegram.Components;
+using StatBotTelegram.Extensions;
 using StatBotTelegram.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -17,8 +19,10 @@ public class ListFormController(
     ITelegramBotClient botClient,
     ICache cache,
     IValidator<RequestInfoForm> validatorRequestInfoForm,
+    IValidator<RequestGetTemplate> validatorRequestGetTemplate,
     IListForm listFormService,
-    IInfoOrganization infoOrganization)
+    IInfoOrganization infoOrganization,
+    ITemplateService templateService)
 {
     public async Task Handle(Message message, CancellationToken cancellationToken)
     {
@@ -26,7 +30,7 @@ public class ListFormController(
         if (state.OperationItem is not null &&
             (message.Text != NameButton.BACK && message.Text != NameButton.BY_OKPO &&
              message.Text != NameButton.BY_INN &&
-             message.Text != NameButton.BY_OGRN))
+             message.Text != NameButton.BY_OGRN && message.Text != NameButton.DOWNLOAD_TEMPLATE))
         {
             await HandleOperation(message, cancellationToken);
         }
@@ -48,23 +52,30 @@ public class ListFormController(
             //По ОКПО
             case NameButton.BY_OKPO:
                 textMessage = TextMessage.SEARCH_OKPO;
-                buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
+                buttonMenu = KeyboradButtonMenu.ButtonsGetListForm;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOkpo, cancellationToken);
                 break;
             //По ИНН
             case NameButton.BY_INN:
                 textMessage = TextMessage.SEACRH_INN;
-                buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
+                buttonMenu = KeyboradButtonMenu.ButtonsGetListForm;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchInn, cancellationToken);
                 break;
             //По ОГРН/ОГРНИП
             case NameButton.BY_OGRN:
                 textMessage = TextMessage.SEARXH_OGRN;
-                buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
+                buttonMenu = KeyboradButtonMenu.ButtonsGetListForm;
                 //устанавливаем состояние выбранной команды
                 await cache.SetOperationCode(message.Chat.Id, OperationCode.SearchOgrnOgrnip, cancellationToken);
+                break;
+            //Скачать шаблон
+            case NameButton.DOWNLOAD_TEMPLATE:
+                textMessage = TextMessage.SEARCH_OKUD;
+                buttonMenu = KeyboradButtonMenu.ButtonsGetListForm;
+                //устанавливаем состояние выбранной команды
+                await cache.SetOperationCode(message.Chat.Id, OperationCode.DownlodTemplate, cancellationToken);
                 break;
             //Назад
             case NameButton.BACK:
@@ -78,7 +89,7 @@ public class ListFormController(
             default:
                 //по умолчанию кнопки меню
                 textMessage = TextMessage.UNKNOWN_COMMAND;
-                buttonMenu = KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn;
+                buttonMenu = KeyboradButtonMenu.ButtonsGetListForm;
                 //скидываем состояние выбранной операции
                 await cache.RemoveOperationCode(message.Chat.Id, cancellationToken);
                 break;
@@ -97,10 +108,21 @@ public class ListFormController(
         var operationState = await cache.GetUserState(message.Chat.Id, cancellationToken);
         var requestInfoForm = new RequestInfoForm();
         ValidationResult validationResult = null;
+        List<string> splitMessages = null;
+        InlineKeyboardButton[][] inlineButtons = null;
+
         //в зависимости от выбранной операции 
         //составляем фильтр
         switch (operationState.OperationItem)
         {
+            //скачивание шаблона
+            case OperationCode.DownlodTemplate:
+                //составляем фильтр
+                var requestGetTemplate = new RequestGetTemplate(message.Text.Trim());
+                //валидация
+                validationResult = await validatorRequestGetTemplate.ValidateAsync(requestGetTemplate);
+                (splitMessages, inlineButtons) = await DownloadTemplate(requestGetTemplate, validationResult, cancellationToken);
+                break;
             case OperationCode.SearchOkpo:
                 //составляем фильтр
                 requestInfoForm.Okpo = message.Text.Trim();
@@ -120,9 +142,15 @@ public class ListFormController(
                 validationResult = await validatorRequestInfoForm.ValidateAsync(requestInfoForm);
                 break;
         }
-        
-        //убираем всю логику в отдельный метод
-        var (splitMessages, inlineButtons) = await GenerateMessage(validationResult, requestInfoForm, cancellationToken);
+
+        //если ответ не получен при скачивании шаблона
+        //то дергаем этот метод
+        if (splitMessages is null && inlineButtons is null)
+        {
+            //убираем всю логику в отдельный метод
+            (splitMessages, inlineButtons) =
+                await GenerateMessage(validationResult, requestInfoForm, cancellationToken);
+        }
 
         for (int i = 0; i < splitMessages.Count(); i++)
         {
@@ -131,9 +159,78 @@ public class ListFormController(
                 protectContent: false, replyParameters: message.Id,
                 text: splitMessages[i],
                 parseMode: ParseMode.Html, cancellationToken: cancellationToken,
-                replyMarkup: inlineButtons is not null && i == splitMessages.Count() - 1 ? inlineButtons :
-                    KeyboradButtonMenu.ButtonsSearchOkpoInnOgrn); 
+                replyMarkup: inlineButtons is not null && i == splitMessages.Count() - 1
+                    ? inlineButtons
+                    : KeyboradButtonMenu.ButtonsGetListForm);
         }
+    }
+
+    private async Task<(List<string>, InlineKeyboardButton[][])> DownloadTemplate
+        (RequestGetTemplate requestGetTemplate, ValidationResult validationResult, CancellationToken cancellationToken)
+    {
+        var textMessage = string.Empty;
+        InlineKeyboardButton[][] inlineButtons = null;
+
+        try
+        {
+            if (validationResult.IsValid)
+            {
+                var responce = await templateService.GetTemplate(requestGetTemplate, cancellationToken);
+                if (responce.Error != null)
+                {
+                    textMessage = responce.Error;
+                }
+                else
+                {
+                    var templates = responce
+                        .Content
+                        .Rows
+                        .Where(t => t.Togs == null)
+                        .ToList();
+
+                    if (templates.Count() == 0)
+                        textMessage = TextMessage.NOT_FOUND_TEMPLATES;
+
+                    if (templates.Count() > 1)
+                    {
+                        textMessage = $"По Вашему запросу найдено шаблонов: {templates.Count()}\n" +
+                                      $"Для того, чтобы скачать определенный шаблон, выберите код шаблона " +
+                                      $"из списка ниже:\n\n" + templates.ToDto();
+
+                        inlineButtons = CreatorInlineKeyboardButton
+                            .CreateFromList<Template>(
+                                objects: templates,
+                                nameCallbackData: CallbackData.DOWNLOAD_TEMPLATE,
+                                propertyForCallbackData: "Id",
+                                propertyForTextButton: "Code",
+                                textForButton: null);
+                    }
+
+                    if (templates.Count() == 1)
+                    {
+                        textMessage = $"По Вашему запросу найдено шаблонов: {templates.Count()}\n\n" +
+                                      templates.ToDto();
+                        var buttonDownloadTemplate = new InlineKeyboardButton(
+                            NameButton.DOWNLOAD_TEMPLATE, $"{CallbackData.DOWNLOAD_TEMPLATE}_{templates.First().Id}");
+                        inlineButtons = new InlineKeyboardButton[0][].AddButton(buttonDownloadTemplate);
+                    }
+                }
+            }
+            else
+            {
+                textMessage = validationResult.Errors.ToDto();
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            textMessage = TextMessage.INTERNAL_ERROR;
+        }
+
+        //делим сообщение на части, чтобы не превысить размер сообщения
+        var splitMessages = SplitterMessage.SplitMessage(textMessage);
+
+        return (splitMessages, inlineButtons);
     }
 
     private async Task<(List<string>, InlineKeyboardButton[][])> GenerateMessage
@@ -171,7 +268,7 @@ public class ListFormController(
                         inlineButtons = CreatorInlineKeyboardButton
                             .CreateFromList<InfoOrganization>(objects: infoOrg,
                                 nameCallbackData: CallbackData.GET_LIST_FORM,
-                                propertyForCallbackData: new[]{"Id", "Okpo"}, 
+                                propertyForCallbackData: new[] { "Id", "Okpo" },
                                 propertyForTextButton: "Okpo",
                                 textForButton: "");
                     }

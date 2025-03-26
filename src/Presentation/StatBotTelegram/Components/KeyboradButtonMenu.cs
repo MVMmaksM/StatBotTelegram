@@ -1,8 +1,9 @@
 using Application.Constants;
 using Telegram.Bot.Types.ReplyMarkups;
+
 namespace StatBotTelegram.Components;
 
-public static class KeyboradButtonMenu 
+public static class KeyboradButtonMenu
 {
     /// <summary>
     /// кнопки главного меню
@@ -24,7 +25,7 @@ public static class KeyboradButtonMenu
             new KeyboardButton(NameButton.SEARCH_EMPLOYEES)
         }
     };
-    
+
     /// <summary>
     /// кнопки меню поиска сотрудника
     /// </summary>
@@ -53,7 +54,7 @@ public static class KeyboradButtonMenu
             new KeyboardButton(NameButton.BACK)
         }
     };
-    
+
     /// <summary>
     /// кнопки получения данных о кодах статистики и перечня форм
     /// </summary>
@@ -74,8 +75,8 @@ public static class KeyboradButtonMenu
             new KeyboardButton(NameButton.BACK)
         }
     };
-    
-    private static KeyboardButton[][] _buttonsSearchOkpoInnOgrn = new KeyboardButton[][]
+
+    private static KeyboardButton[][] _buttonsGetListForm = new KeyboardButton[][]
     {
         //первая строка кнопок
         new KeyboardButton[]
@@ -91,6 +92,37 @@ public static class KeyboradButtonMenu
             //По ОГРН/ОГРНИП
             new KeyboardButton(NameButton.BY_OGRN)
         },
+        //третья строка кнопок
+        new KeyboardButton[]
+        {
+            //Назад
+            new KeyboardButton(NameButton.DOWNLOAD_TEMPLATE)
+        },
+        //четвертая строка кнопок
+        new KeyboardButton[]
+        {
+            //Назад
+            new KeyboardButton(NameButton.BACK)
+        }
+    };
+    
+    private static KeyboardButton[][] _buttonsGetInfoOrg = new KeyboardButton[][]
+    {
+        //первая строка кнопок
+        new KeyboardButton[]
+        {
+            //По ОКПО
+            new KeyboardButton(NameButton.BY_OKPO),
+            //По ИНН
+            new KeyboardButton(NameButton.BY_INN)
+        },
+        //вторая строка кнопок
+        new KeyboardButton[]
+        {
+            //По ОГРН/ОГРНИП
+            new KeyboardButton(NameButton.BY_OGRN)
+        },
+        //третья строка кнопок
         new KeyboardButton[]
         {
             //Назад
@@ -101,5 +133,6 @@ public static class KeyboradButtonMenu
     public static KeyboardButton[][] ButtonsMainMenu => _buttonsMainMenu;
     public static KeyboardButton[][] ButtonsSearchEmployeesMenu => _buttonsSearchEmployeesMenu;
     public static KeyboardButton[][] ButtonsInfoCodesAndListForm => _buttonsInfoCodesAndListForm;
-    public static KeyboardButton[][] ButtonsSearchOkpoInnOgrn => _buttonsSearchOkpoInnOgrn;
+    public static KeyboardButton[][] ButtonsGetListForm => _buttonsGetListForm;
+    public static KeyboardButton[][] ButtonsGetInfoOrg => _buttonsGetInfoOrg;
 }

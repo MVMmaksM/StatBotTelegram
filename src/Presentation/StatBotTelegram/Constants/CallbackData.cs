@@ -10,4 +10,6 @@ public static class CallbackData
     public const string EXPORT_EXCEL_INFO_ORG = "exportExcelInfoOrg";
     //экспорт в эксель перечня форм
     public const string EXPORT_EXCEL_LIST_FORM = "exportExcelListForm";
+    //скачивание шаблона
+    public const string DOWNLOAD_TEMPLATE = "downloadTemplate";
 }

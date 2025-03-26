@@ -9,4 +9,7 @@ public interface IRequesterApi
 
     Task<ResultRequest<TContent, TError>> GetAsync<TContent, TError>(string requestUri,
         CancellationToken cancellationToken);
+    
+    Task<ResultRequest<TContent, TError>> PutAsync<TBody, TContent, TError>
+        (string requestUri, TBody body, CancellationToken cancellationToken);
 }

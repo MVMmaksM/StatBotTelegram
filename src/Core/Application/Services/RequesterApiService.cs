@@ -76,4 +76,38 @@ public class RequesterApiService(HttpClient httpClient) : IRequesterApi
 
         return result;
     }
+    
+    public async Task<ResultRequest<TContent, TError>> PutAsync<TBody, TContent, TError>
+        (string requestUri, TBody body, CancellationToken cancellationToken)
+    {
+        var content = new StringContent(JsonConvert.SerializeObject(body));
+        var request = new HttpRequestMessage(HttpMethod.Put, requestUri);
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        request.Content = content;
+        HttpResponseMessage responce = null;
+        var result = new ResultRequest<TContent, TError>();
+
+        try
+        {
+            responce = await httpClient.SendAsync(request, cancellationToken);
+            if (responce.IsSuccessStatusCode)
+            {
+                var dataResponce = await responce.Content.ReadAsStringAsync();
+                result.Content = JsonConvert
+                    .DeserializeObject<TContent>(dataResponce);
+            }
+            else if (responce.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var dataResponce = await responce.Content.ReadAsStringAsync();
+                result.Error = JsonConvert
+                    .DeserializeObject<TError>(dataResponce);
+            }
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
+        }
+
+        return result;
+    }
 }
