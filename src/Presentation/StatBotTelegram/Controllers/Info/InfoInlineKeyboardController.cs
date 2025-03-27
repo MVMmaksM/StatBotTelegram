@@ -1,3 +1,5 @@
+using System.Text;
+using System.Xml;
 using Application.Constants;
 using Application.Extensions;
 using Application.Interfaces;
@@ -18,7 +20,8 @@ public class InfoInlineKeyboardController(
     ITelegramBotClient botClient,
     IInfoOrganization infoOrgService,
     IListForm listFormService,
-    IAbstractFactoryGenFile factoryGenFile)
+    IAbstractFactoryGenFile factoryGenFile,
+    ITemplateService templateService)
 {
     public async Task Handle(Update update, CancellationToken ct)
     {
@@ -29,9 +32,13 @@ public class InfoInlineKeyboardController(
 
         try
         {
+            //скачивание шаблонов
+            if (update.CallbackQuery.Data.StartsWith(CallbackData.DOWNLOAD_TEMPLATE))
+                (textMessage, fileName, bytesFile) = await DownloadTemplate(update, ct);
+            //инфа об организации
             if (update.CallbackQuery.Data.StartsWith(CallbackData.GET_INFO_ORG))
                 (textMessage, buttons) = await GetInfoOrg(update, ct);
-
+            //перечень форм
             if (update.CallbackQuery.Data.StartsWith(CallbackData.GET_LIST_FORM))
                 (textMessage, buttons) = await GetListForm(update, ct);
             //экспорт инфо об организации
@@ -72,6 +79,78 @@ public class InfoInlineKeyboardController(
                     cancellationToken: ct);
             }
         }
+    }
+    private async Task<(string, string, byte[]?)> DownloadTemplate(Update update, CancellationToken ct)
+    {
+        var fileName = string.Empty;
+        var textMessage = string.Empty;
+        byte[] bytesFile = null;
+
+        var templateId = update.CallbackQuery.Data.Split("_")[1];
+        var responceGuidTemplate = await templateService.GetGuidByTemplateId(templateId, ct);
+
+        if (responceGuidTemplate.Error != null)
+            textMessage = responceGuidTemplate.Error;
+
+        if (responceGuidTemplate.Content == null)
+        {
+            textMessage = TextMessage.INTERNAL_ERROR;
+        }
+        else
+        {
+            var templateGuid = responceGuidTemplate.Content;
+            var responceTemplate = await templateService.DownloadTemplateByGiud(templateGuid, ct);
+
+            if (responceTemplate.Error != null)
+                textMessage = responceTemplate.Error;
+
+            if (responceTemplate.Content == null)
+            {
+                textMessage = TextMessage.INTERNAL_ERROR;
+            }
+            else
+            {
+                bytesFile = Encoding.UTF8.GetBytes(responceTemplate.Content);
+                fileName = await GetFileNameByTemplate(responceTemplate.Content);
+            }
+        }
+        
+        return (textMessage, fileName, bytesFile);
+    }
+
+    private async Task<string> GetFileNameByTemplate(string template)
+    {
+        //путь к директории для хранения 
+        //временных файлов шаблонов
+        var pathTempDirectory = Path.Combine(Environment.CurrentDirectory, "temp");
+        //полный путь к файлу шаблона
+        var fullnameFile = Path.Combine(pathTempDirectory, $"tmp_{DateTime.Now.ToString("dd_MM_yyyy_hh_mm_ss_ff")}.xml");
+        
+        //если директории не существует
+        //то создаем ее
+        if(!Directory.Exists(pathTempDirectory))
+            Directory.CreateDirectory(pathTempDirectory);
+        
+        //пишем в файл шаблона
+        await File.WriteAllTextAsync(fullnameFile, template);
+        
+        var xmlTemplate = new XmlDocument();
+        //читаем xml шаблон
+        xmlTemplate.Load(fullnameFile);
+        var root = xmlTemplate.DocumentElement;
+        //получаем значение атрибута code
+        var code = root.Attributes["code"].Value;
+        //получаем значение атрибута version
+        var version = root.Attributes["version"].Value;
+
+        if (code == null || version == null)
+            throw new Exception("Не найден код или версия шаблона!");
+        
+        //удаляемп временный файл шаблона
+        File.Delete(fullnameFile);
+        
+        //возвращаем имя файла в виде code_version.xml
+        return  $"{code}_{version}.xml";
     }
 
     private async Task<(string, string, byte[]?)> ExportExcelListForm(Update update, CancellationToken ct)
@@ -191,9 +270,9 @@ public class InfoInlineKeyboardController(
                 .Content
                 .Where(o => o.Okpo == request.Okpo)
                 .ToList();
-            
+
             //готовим кнопку получения перечня форм
-            var buttonGetForms = 
+            var buttonGetForms =
                 new InlineKeyboardButton(text: NameButton.GET_LIST_FORMS,
                     callbackDataOrUrl: $"{CallbackData.GET_LIST_FORM}_{infoOrg.First().Id}_{infoOrg.First().Okpo}");
             //готовим кнопку экспорта

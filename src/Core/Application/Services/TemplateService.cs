@@ -15,4 +15,24 @@ public class TemplateService(IRequesterApi requesterApiService) : ITemplateServi
             ? responce
             : new ResultRequest<ResponceTemplate, string>();
     }
+
+    public async Task<ResultRequest<string, string>> GetGuidByTemplateId(string templateId, CancellationToken cancellationToken)
+    {
+        var responce = await requesterApiService.GetAsync<string, string>
+            ($"/webstat/api/templates/{templateId}/xml", cancellationToken);
+
+        return responce != null && responce.Content != null
+            ? responce
+            : new ResultRequest<string, string>();
+    }
+
+    public async Task<ResultRequest<string, string>> DownloadTemplateByGiud(string templateGuid, CancellationToken cancellationToken)
+    {
+        var responce = await requesterApiService.Download
+            ($"/webstat/api/files/tmp/{templateGuid}", cancellationToken);
+
+        return responce != null && responce.Content != null
+            ? responce
+            : new ResultRequest<string, string>();
+    }
 }
