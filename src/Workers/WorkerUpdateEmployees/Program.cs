@@ -1,0 +1,15 @@
+using WorkerUpdateEmployees.Extensions;
+
+namespace WorkerUpdateEmployees;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        var builder = Host.CreateApplicationBuilder(args);
+        builder.AddAppServices();
+        
+        var host = builder.Build();
+        host.Run();
+    }
+}
