@@ -1,12 +1,39 @@
+using System.Text.RegularExpressions;
 using Domain.Entities;
 using WorkerUpdateEmployees.Interfaces;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
+using Newtonsoft.Json;
+using WorkerUpdateEmployees.Model;
 
 namespace WorkerUpdateEmployees.Services;
 
 public class Parser : IParser
 {
+    public List<Contact> ParseContact(string content)
+    {
+        //определян=ем начало списка
+        var indexStart = content.IndexOf('[');
+        
+        //удаляем ненужные символы
+        //и оборачиваем в кавычки поля
+        var json = content
+            .Substring(indexStart)
+            .Replace("okud", "\"okud\"")
+            .Replace("form_index", "\"form_index\"")
+            .Replace("period", "\"period\"")
+            .Replace("ekat_tel", "\"ekat_tel\"")
+            .Replace("kurgan_tel", "\"kurgan_tel\"")
+            .Replace(";", "");
+        
+        //удаляея дефисы в номерах телефона
+        json = Regex.Replace(json, @"(?<=\d)-(?=\d)", "");
+        
+        return JsonConvert.DeserializeObject<List<Contact>>(json);
+    }
+    
+    //deprecated
+    /*
     public void ParseFormEmployee(string content)
     {
         var contentReplaced = content.Replace("&nbsp;", " ").Replace("<br>", " ").Replace("</br>", " ").Replace("\r\n", " ");
@@ -277,4 +304,5 @@ public class Parser : IParser
         
         Console.WriteLine("End");
     }
+    */
 }

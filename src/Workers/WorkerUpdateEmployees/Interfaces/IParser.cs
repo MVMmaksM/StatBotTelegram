@@ -1,8 +1,9 @@
 using Domain.Entities;
+using WorkerUpdateEmployees.Model;
 
 namespace WorkerUpdateEmployees.Interfaces;
 
 public interface IParser
 {
-    void ParseFormEmployee(string content);
+    List<Contact> ParseContact(string content);
 }
