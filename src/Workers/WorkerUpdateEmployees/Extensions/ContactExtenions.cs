@@ -5,7 +5,7 @@ namespace WorkerUpdateEmployees.Extensions;
 
 public static class ContactExtenions
 {
-    public static List<Form> GetForms(this List<Contact> contacts)
+    public static List<Form> GetForms(this List<ContactDto> contacts)
     {
         var periods = new List<PeriodicityForm>();
         var departments = new List<Department>();

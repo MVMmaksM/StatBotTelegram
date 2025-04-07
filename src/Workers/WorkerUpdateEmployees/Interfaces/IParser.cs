@@ -5,5 +5,5 @@ namespace WorkerUpdateEmployees.Interfaces;
 
 public interface IParser
 {
-    List<Contact> ParseContact(string content);
+    List<ContactDto> ParseContact(string content);
 }

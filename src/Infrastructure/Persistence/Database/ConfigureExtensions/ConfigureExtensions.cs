@@ -39,13 +39,6 @@ public static class ConfigureExtensions
             .HasIndex(f => f.Okud)
             .IsUnique()
             .HasDatabaseName("inx_okud_forms");
-
-        modelBuilder
-            .Entity<Form>()
-            .HasOne(f => f.PeriodicityForm)
-            .WithMany(p => p.Forms)
-            .HasForeignKey(f => f.PeriodicityFormId)
-            .HasConstraintName("fk_periodicity_forms");
     }
     
     public static void ConfigureDepartment(this ModelBuilder modelBuilder)
@@ -144,10 +137,16 @@ public static class ConfigureExtensions
 
     public static void ConfigureEmployeeForm(this ModelBuilder modelBuilder)
     {
-        modelBuilder
-            .Entity<Employee>()
+        modelBuilder.Entity<Employee>()
             .HasMany(e => e.Forms)
             .WithMany(f => f.Employees)
-            .UsingEntity(t => t.ToTable("employees_forms"));
+            .UsingEntity<Dictionary<string, object>>(
+                "employee_forms",
+                j => j.HasOne<Form>().WithMany().HasForeignKey("form_id"),
+                j => j.HasOne<Employee>().WithMany().HasForeignKey("employee_id"),
+                j =>
+                {
+                    j.ToTable("employee_forms");
+                });
     }
 }

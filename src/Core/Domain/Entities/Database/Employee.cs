@@ -10,4 +10,6 @@ public class Employee : BaseEntity
 
     public Department Department { get; set; } 
     public List<Form> Forms { get; set; } = null!;
+
+    public List<EmployeeForm> EmployeesForms { get; set; }
 }

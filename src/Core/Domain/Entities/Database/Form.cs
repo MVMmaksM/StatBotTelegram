@@ -8,4 +8,6 @@ public class Form : BaseEntity
 
     public PeriodicityForm PeriodicityForm { get; set; } = null!;
     public List<Employee> Employees { get; set; } = null!;
+    
+    public List<EmployeeForm> EmployeesForms { get; set; }
 }

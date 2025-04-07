@@ -10,7 +10,7 @@ namespace WorkerUpdateEmployees.Services;
 
 public class Parser : IParser
 {
-    public List<Contact> ParseContact(string content)
+    public List<ContactDto> ParseContact(string content)
     {
         //определян=ем начало списка
         var indexStart = content.IndexOf('[');
@@ -29,7 +29,7 @@ public class Parser : IParser
         //удаляея дефисы в номерах телефона
         json = Regex.Replace(json, @"(?<=\d)-(?=\d)", "");
         
-        return JsonConvert.DeserializeObject<List<Contact>>(json);
+        return JsonConvert.DeserializeObject<List<ContactDto>>(json);
     }
     
     //deprecated
