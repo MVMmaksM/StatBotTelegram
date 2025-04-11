@@ -1,20 +1,22 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;
-using Persistence.Database;
+using WorkerUpdateEmployees.Data;
 using WorkerUpdateEmployees.Interfaces;
 
 namespace WorkerUpdateEmployees.Services;
 
-public class Repository(AppDbContext dbContext) : IRepository
+public class Repository(IServiceScopeFactory scopeFactory) : IRepository
 {
-    public async Task UpdateContactsAsync(string jsonContacts)
+    public async Task<int> UpdateContactsAsync(string jsonContacts)
     {
         var parameter = new NpgsqlParameter("contact", NpgsqlDbType.Jsonb)
         {
             Value = jsonContacts
         };
            
-        var res = await dbContext.Database.ExecuteSqlRawAsync("CALL update_contact(@contact)", parameter);
+        using var scope = scopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return await dbContext.Database.ExecuteSqlRawAsync("CALL update_contact(@contact)", parameter);
     }
 }

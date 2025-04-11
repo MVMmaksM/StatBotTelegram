@@ -2,5 +2,5 @@ namespace WorkerUpdateEmployees.Interfaces;
 
 public interface IRepository
 {
-    Task UpdateContactsAsync(string jsonContacts);
+    Task<int> UpdateContactsAsync(string jsonContacts);
 }

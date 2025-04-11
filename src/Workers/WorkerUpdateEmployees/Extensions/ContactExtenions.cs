@@ -1,53 +1,26 @@
-using Domain.Entities;
 using WorkerUpdateEmployees.Model;
 
 namespace WorkerUpdateEmployees.Extensions;
 
 public static class ContactExtenions
 {
-    public static List<Form> GetForms(this List<ContactDto> contacts)
+    public static List<Contact> GetContacts(this List<ContactDto> contactsDto)
     {
-        var periods = new List<PeriodicityForm>();
-        var departments = new List<Department>();
-        var employees = new List<Employee>();
-        var forms = new List<Form>();
-        
-        Department? department = null;
+        var contacts = new List<Contact>();
 
-        for (int i = 0; i < contacts.Count; i++)
+        for (int i = 0; i < contactsDto.Count; i++)
         {
-            Console.WriteLine(i);
-            
-            Form form = new Form();
-            var tmpEmployees = new List<Employee>();
+            var contact = new Contact();
+            var employees = new List<Employee>();
             
             //добавляем ОКУД к форме
-            form.Okud = int.TryParse(contacts[i].Okud, out var okud) ? okud : throw new Exception("Ошибка при конверте ОКУДа");
+            contact.Okud = int.TryParse(contactsDto[i].Okud, out var okud) ? okud : throw new Exception("Ошибка при конверте ОКУДа");
             //добавляем название формы
-            form.Name = contacts[i].FormIndex;
-            
-            //ищем период в списке
-            var period = periods
-                .Find(p => p.Name.Trim() == contacts[i].Period.Trim());
-
-            //если периода нет
-            if (period is null)
-            {
-                //создаем
-                period = new PeriodicityForm
-                {
-                    Name = contacts[i].Period
-                };
-                
-                //добавляем в список
-                periods.Add(period);
-            }
-            
-            //добавляем период к форме
-            form.PeriodicityForm = period;
-            
+            contact.FormIndex = contactsDto[i].FormIndex;
+            //добавляем период
+            contact.Period = contactsDto[i].Period;
             //сплитим для нахождения отдела
-            var departmentsWithEmployees = contacts[i].KurganTel
+            var departmentsWithEmployees = contactsDto[i].KurganTel
                 .Trim()
                 .Split("-")
                 .Where(d => !string.IsNullOrWhiteSpace(d))
@@ -55,7 +28,7 @@ public static class ContactExtenions
             
             //если у формы нет сотрудника
             //то для сотрудника будет указан 0
-            //то пропускаем такую формк
+            //то пропускаем такую форму
             if(departmentsWithEmployees.Count == 1 && departmentsWithEmployees[0] == "0")
                 continue;
             
@@ -74,84 +47,32 @@ public static class ContactExtenions
                         .Split(upperChar)[0]
                         .Trim();
                     
-                    //ищем отдел в списке
-                    department = departments
-                        .Find(d => d.Name == nameDepartment);
-                    
-                    //если отдел не найден
-                    //то добавляем его в список
-                    if (department is null)
-                    {
-                        department = new Department
-                        {
-                            Name = nameDepartment
-                        };
-                        
-                        departments.Add(department);
-                    }
-
                     //сплитим и получаем фио и номер телефона
                     //сотрудника
                     var fioWithPhone = dpe
-                        .Split(upperChar)[1]
+                        .Replace(nameDepartment, string.Empty)
                         .Trim();
                     //получаем сотрудника
                     var employee = GetEmployee(fioWithPhone);
-
-                    //ищем сотрудника в списке
-                    var searchEmployee = employees.Find(e =>
-                        e.FirstName == employee.FirstName &&
-                        e.LastName == employee.LastName &&
-                        e.SurName == employee.SurName);
-
-                    //если сотрудник не найден
-                    //то добавляем его с список
-                    if (searchEmployee is null)
-                    {
-                        employees.Add(employee);
-                        tmpEmployees.Add(employee);
-                    }
-                    else
-                    {
-                        //если сотрудник найден и у него не заполнен
-                        //отдел, то заполняем
-                       if(searchEmployee.Department is null)
-                           searchEmployee.Department = department;
-                       
-                       tmpEmployees.Add(searchEmployee);
-                    }
+                    //добавляем название департамента
+                    employee.Department = nameDepartment;
+                    //добавляем сотрудника в список
+                    employees.Add(employee);
                 }
             }
             else
             {
                 //получаем сотрудника
-                var employee = GetEmployee(contacts[i].KurganTel.Trim());
-                
-                //ищем сотрудника в списке
-                var searchEmployee = employees.Find(e =>
-                    e.FirstName == employee.FirstName &&
-                    e.LastName == employee.LastName &&
-                    e.SurName == employee.SurName);
-                
-                //если сотрудник не найден
-                //то добавляем его с список
-                if (searchEmployee is null)
-                {
-                    employees.Add(employee);
-                    tmpEmployees.Add(employee);
-                }
-                else
-                {
-                    //если найден
-                    tmpEmployees.Add(searchEmployee);
-                }
+                var employee = GetEmployee(contactsDto[i].KurganTel.Trim());
+                //добавляем сотрудника в список
+                employees.Add(employee);
             }
             
-            form.Employees = tmpEmployees;
-            forms.Add(form);
+            contact.Employees = employees.ToArray();
+            contacts.Add(contact);
         }
         
-        return forms;
+        return contacts;
     }
     private static Employee GetEmployee(string fioWithPhone)
     {

@@ -4,12 +4,13 @@ namespace WorkerUpdateEmployees;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
         builder.AddAppServices();
-        
+
         var host = builder.Build();
-        host.Run();
+        host.ExecuteMigrate();
+        await host.RunAsync();
     }
 }

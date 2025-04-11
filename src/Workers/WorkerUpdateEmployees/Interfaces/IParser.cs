@@ -1,4 +1,3 @@
-using Domain.Entities;
 using WorkerUpdateEmployees.Model;
 
 namespace WorkerUpdateEmployees.Interfaces;

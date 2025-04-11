@@ -1,8 +1,5 @@
 using System.Text.RegularExpressions;
-using Domain.Entities;
 using WorkerUpdateEmployees.Interfaces;
-using Fizzler.Systems.HtmlAgilityPack;
-using HtmlAgilityPack;
 using Newtonsoft.Json;
 using WorkerUpdateEmployees.Model;
 
