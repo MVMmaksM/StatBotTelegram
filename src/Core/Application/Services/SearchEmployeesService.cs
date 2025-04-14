@@ -2,17 +2,20 @@ using Application.Extensions;
 using Application.Interfaces;
 using Application.Models.SearchEmployees;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Persistence.Database;
 
 namespace Application.Services;
 
-public class SearchEmployeesService(AppDbContext dbContext) : ISearchEmployees
+public class SearchEmployeesService(IServiceScopeFactory scopeFactory) : ISearchEmployees
 {
     public async Task<string> GetEmployees(RequestSearchEmployees request, CancellationToken cancellationToken)
     {
+        using var scope = scopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
         var query = dbContext
             .Forms
-            .Include(f => f.Employees)
             .Include(f => f.PeriodicityForm)
             .AsQueryable();
 
@@ -22,7 +25,7 @@ public class SearchEmployeesService(AppDbContext dbContext) : ISearchEmployees
             query = query.Where(f => f.Okud == okudInt);
         }
 
-        if (request.FioEmployee != string.Empty)
+        /*if (request.FioEmployee != string.Empty)
             query = query.Where(f=> f.Employees.Where(e => e.LastName.Contains(request.FioEmployee)).Any());
 
         if(request.IndexForm != string.Empty)
@@ -31,7 +34,7 @@ public class SearchEmployeesService(AppDbContext dbContext) : ISearchEmployees
         if (request.PhoneEmployee != string.Empty)
         {
             query = query.Where(f => f.Employees.Where(e => e.Phone.Contains(request.PhoneEmployee)).Any());
-        }
+        }*/
 
         var forms = await query.ToListAsync(cancellationToken);
 

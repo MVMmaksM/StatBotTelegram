@@ -2,12 +2,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace WorkerUpdateEmployees.Data;
 
-public class AppDbContext(IConfiguration configuration) : DbContext
+public class AppDbContext(IConfiguration configuration, IHostEnvironment environment) : DbContext
 {
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder
             .UseNpgsql(configuration.GetConnectionString("pg_db"))
-            .EnableSensitiveDataLogging();
+            .EnableSensitiveDataLogging(environment.IsDevelopment());
     }
 }

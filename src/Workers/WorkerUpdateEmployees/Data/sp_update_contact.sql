@@ -64,6 +64,8 @@ begin
                     values(btrim(l_employee.department));
                     select currval('departments_id_seq') into l_department_id;
                 end if;
+            else
+                l_department_id = null;
             end if;
                 
             --проверяем существование сотрудника
@@ -82,16 +84,8 @@ begin
                         btrim(l_employee.phone), 
                         l_department_id);				
                 l_employees_id = array_append(l_employees_id, currval('employees_id_seq'));
-            else
-                --если департамен у сотрудника не заполнен и департамент пришел,
-                --то добавляем его сотруднику
-                if (select department_id from employees where id = l_exist_employee_id) is null	
-                            and l_department_id	is not null then
-                    update employees
-                    set department_id = l_department_id
-                    where id = l_exist_employee_id;
-                end if;
-                        l_employees_id = array_append(l_employees_id, l_exist_employee_id);
+            else              
+                l_employees_id = array_append(l_employees_id, l_exist_employee_id);
             end if;
         end loop;
             
@@ -103,8 +97,8 @@ begin
         --привязываем сотрудников к форме
         FOREACH l_employee_id IN ARRAY l_employees_id
         loop
-            insert into employee_forms(employee_id, form_id)
-            values(l_employee_id, l_form_id);
+            insert into employee_forms(employee_id, form_id, department_id)
+            values(l_employee_id, l_form_id, l_department_id);
         end loop; 
         l_employees_id = ARRAY[]::int[];
     end loop;

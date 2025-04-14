@@ -82,11 +82,11 @@ public static class ContactExtenions
             .Split(" ");
         
         //фамилия
-        employee.LastName = splitter[0];
+        employee.LastName = splitter[0].Replace(",", "");
         //имя
-        employee.FirstName = splitter[1];
+        employee.FirstName = splitter[1].Replace(",", "");
         //отчество
-        employee.SurName = splitter[2];
+        employee.SurName = splitter[2].Replace(",", "");
 
         var phone = string.Empty;
 
